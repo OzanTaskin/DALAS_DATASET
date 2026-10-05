@@ -1,0 +1,10 @@
+# Données : trop lourdes pour GitHub (483 Mo), régénérées par `python -m collecte`
+data/
+
+# Environnement Python
+.venv/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
