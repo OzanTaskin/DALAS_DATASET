@@ -81,8 +81,8 @@ résultats, on peut ajouter une de ces directions :
 |---|---|
 | Questions de recherche et faisabilité | ✅ fait |
 | **Niveau 1 : collecte des sources brutes** | ✅ fait (292 fichiers, 483 Mo, vérification complète) |
-| Niveau 2 : tables nettoyées | ⏳ à faire |
-| Niveau 3 : datasets finaux | ⏳ à faire |
+| **Niveau 2 : tables nettoyées** | ✅ fait (16 tables, dont `shortage_events` : 17 343 épisodes FR/IT/DE) |
+| Niveau 3 : datasets finaux (`panel_fr`) | ⏳ à faire, après le cours ML Protocol |
 | TME4 : rapport de 2 pages | ⏳ |
 | TME6 : dashboard | ⏳ |
 | TME9 : rapport final | ⏳ |
@@ -95,7 +95,8 @@ script. Il faut Python 3.10 ou plus récent et environ 500 Mo d'espace disque.
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m collecte                 # tout, en parallèle (≈ 10 min), puis vérification
+.venv/bin/python -m collecte                 # niveau 1 : tout, en parallèle (≈ 10 min), puis vérification
+.venv/bin/python -m nettoyage                # niveau 2 : tables nettoyées dans data/clean/ (≈ 30 s)
 .venv/bin/python -m collecte actuelles cima  # seulement certaines étapes
 .venv/bin/python -m collecte verification    # contrôle de complétude, sans téléchargement
 ```
@@ -117,7 +118,19 @@ collecte/
 ├── open_medic.py         consommation française 2019-2025
 ├── wayback.py            historique via les archives de la Wayback Machine
 └── verification.py       contrôle de complétude de data/raw
+
+nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ordre
+├── bdpm.py               base des médicaments → bdpm_* (+ signalements archivés)
+├── open_medic.py         → atc (libellés), cip_atc, consommation
+├── produits.py           ATC5 de chaque médicament français
+├── ansm.py               page ANSM (59 photos) → ansm_observations
+├── ansm_fiches.py        chaque fiche ANSM reliée à un médicament et un ATC5
+├── ansm_episodes.py      observations mensuelles → épisodes de pénurie (début, fin)
+├── europe.py             Italie, Allemagne → europe_observations, europe_episodes
+└── evenements.py         table centrale shortage_events (FR + IT + DE)
 ```
+
+Le détail des tables et des règles de construction est dans [DONNEES.md](DONNEES.md).
 
 ### Particularités des sources (constatées le 05/10/2026)
 

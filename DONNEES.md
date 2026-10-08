@@ -12,7 +12,7 @@ chacun avec un rôle précis :
 
 ```
 NIVEAU 1 : BRUT              NIVEAU 2 : NETTOYÉ             NIVEAU 3 : FINAL
-data/raw/                    data/clean/  (à faire)         data/final/  (à faire)
+data/raw/                    data/clean/                    data/final/  (à faire)
 
 Fichiers tels que      →     Tables propres, reliées   →    Tableaux prêts pour
 téléchargés                  entre elles                    l'analyse et le ML
@@ -31,19 +31,50 @@ C'est la démarche du cours *Building a Dataset from a Warehouse*. Le niveau 2 f
 **schéma en étoile** : une table centrale de faits (les pénuries) entourée de tables qui la
 décrivent (médicaments, substances, consommation…).
 
-### Ce qui est prévu aux niveaux 2 et 3
+### Niveau 2 : les tables nettoyées (fait, `python -m nettoyage`)
 
-**Niveau 2 : 5 tables nettoyées**
+Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une ligne avec pandas ou DuckDB.
 
-| Table | Une ligne = | Construite à partir de |
+**La table centrale**
+
+| Table | Une ligne = | Lignes | Contenu |
+|---|---|---:|---|
+| **`shortage_events`** | un épisode de pénurie dans un pays | 17 343 | pays, médicament, substance, ATC5, ATC4, début, fin, en cours, type (pénurie / arrêt définitif), gravité (FR), criticité (DE), raison (IT, DE) |
+
+**Les tables qui la décrivent**
+
+| Table | Une ligne = | Lignes | Sert à |
+|---|---|---:|---|
+| `produits` | un médicament français (CIS) avec son ATC5 | 15 883 | univers de prédiction, structure du marché |
+| `atc` | un code ATC5 avec ses niveaux 1 à 4 et leurs libellés | 1 333 | classes thérapeutiques (substituts pour Q1) |
+| `consommation` | un ATC5 × une année : boîtes et montants remboursés | 8 045 | demande |
+| `bdpm_presentations`, `bdpm_compositions`, `bdpm_generiques`, `bdpm_mitm` | boîte, substance, groupe générique, médicament critique | 7 700 à 32 400 | variables du marché, criticité |
+| `cip_atc` | une boîte (CIP13) avec son ATC5 | 15 963 | lien Open Medic ↔ BDPM |
+
+**Les tables intermédiaires** (gardées pour vérifier chaque étape)
+
+| Table | Une ligne = | Lignes |
+|---|---|---:|
+| `ansm_observations` | une fiche ANSM vue dans une photo de la page | 17 700 |
+| `ansm_fiches` | une fiche ANSM reliée à ses médicaments et à un ATC5 | 1 470 |
+| `ansm_episodes` | un épisode de pénurie en France, avec ses règles de début et de fin | 1 599 |
+| `bdpm_dispo_observations` | un signalement BDPM vu dans une photo | 10 807 |
+| `europe_observations`, `europe_episodes` | idem pour l'Italie et l'Allemagne | 171 550 / 15 744 |
+
+### Les choix de construction importants
+
+| Problème | Choix | Conséquence |
 |---|---|---|
-| `shortage_events` (table centrale) | une pénurie d'un médicament dans un pays, avec début, fin et statut | ANSM, BDPM dispo, AIFA, BfArM, CIMA, EMA (+ archives) |
-| `products` | un médicament commercialisé en France | BDPM |
-| `substances_atc` | une substance (code ATC5) avec ses niveaux ATC 1 à 4 et sa criticité | Open Medic, MITM, liste critique UE |
-| `consumption` | une substance × une année : boîtes remboursées | Open Medic |
-| `market_structure` | une substance × une date : nombre de médicaments, de laboratoires, de génériques | BDPM (+ archives) |
+| L'ANSM et la BDPM ne donnent pas l'ATC | ATC obtenu par Open Medic, puis la liste MITM, puis un médicament aux **mêmes substances** | 81 % des médicaments commercialisés ont un ATC (le reste : surtout de l'homéopathie) |
+| Les fiches ANSM n'ont pas de code médicament | Rapprochement en 4 voies : lien exact donné par la BDPM (808 fiches), nom identique (246), substance (126), marque (203) | **94 % des fiches** ont un ATC ; la voie utilisée est gardée (`methode_rapprochement`) |
+| La date affichée par l'ANSM est une date de **mise à jour** | Début = date de mise à jour à la première apparition (elle tombe entre deux photos dans 98,5 % des cas), remplacée par la date exacte de la BDPM quand elle existe (556 épisodes) | début fiable au mois près |
+| Une fiche peut repasser en pénurie | Chaque retour (après une remise à disposition) est un **nouvel épisode** | 1 599 épisodes pour 1 432 fiches |
+| Pénurie apparue et résolue entre deux photos | Gardée, avec un début seulement borné (`debut_connu` = faux) | 189 épisodes |
+| Épisode déjà en cours à la première archive (avril 2021) | Signalé (`censure_gauche`) | à exclure de l'estimation des durées |
+| Italie : pas de colonne ATC avant fin 2024 | ATC repris du même code AIC, puis de la même substance | 94 % des épisodes italiens ont un ATC |
+| Italie : « arrêt définitif de commercialisation » | Ce n'est pas une pénurie : `type_episode` = `arret_definitif` | 3 427 épisodes exclus de la cible |
 
-**Niveau 3 : 2 datasets finaux**
+### Niveau 3 : 2 datasets finaux (à faire)
 
 | Dataset | Une ligne = | Sert à |
 |---|---|---|
