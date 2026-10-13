@@ -8,11 +8,12 @@ Usage :
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 
-from . import cima, open_medic, sources_actuelles, verification, wayback
+from . import ansm_signalements, cima, open_medic, sources_actuelles, verification, wayback
 from .commun import creer_session
 
 COLLECTES = {
     "actuelles": sources_actuelles.collecter,
+    "ansm_signalements": ansm_signalements.collecter,
     "cima": cima.collecter,
     "open_medic": open_medic.collecter,
     "wayback": wayback.collecter,

@@ -1,7 +1,7 @@
 """Vérifie que la couche brute est complète et intacte.
 
-- chaque fichier attendu est présent (sources actuelles, pages CIMA, années Open Medic,
-  captures Wayback listées dans _captures.json) ;
+- chaque fichier attendu est présent (sources actuelles, classeurs de signalements ANSM,
+  pages CIMA, années Open Medic, captures Wayback listées dans _captures.json) ;
 - chaque fichier présent est tracé dans le manifeste, avec la même empreinte SHA-256 ;
 - aucun téléchargement interrompu (.part) ne traîne ;
 - les captures qui ne ressemblent pas au format attendu sont signalées (sans être supprimées).
@@ -9,7 +9,7 @@
 import json
 import zipfile
 
-from . import open_medic, sources_actuelles
+from . import ansm_signalements, open_medic, sources_actuelles
 from .commun import MANIFESTE, RAW, lire_manifeste, sha256
 from .wayback import CIBLES, chemin_capture
 
@@ -53,6 +53,15 @@ def verifier_actuelles(problemes):
     union_avant = set().union(*(passages[p] for p in ordre[:-2]))
     if len(ordre) < 3 or not (passages[ordre[-1]] | passages[ordre[-2]]) <= union_avant:
         problemes.append("CIMA : union des passages non stabilisée")
+
+
+def verifier_ansm_signalements(problemes):
+    for nom, _ in ansm_signalements.CLASSEURS:
+        chemin = RAW / ansm_signalements.chemin_classeur(nom)
+        if not chemin.exists():
+            problemes.append(f"signalements ANSM manquants : {nom}")
+        elif not ansm_signalements.est_un_classeur(chemin.read_bytes()[:4]):
+            problemes.append(f"signalements ANSM : {nom} n'est pas un classeur Excel")
 
 
 def verifier_open_medic(problemes):
@@ -103,6 +112,7 @@ def verifier_wayback(problemes, alertes):
 def verifier():
     problemes, alertes = [], []
     verifier_actuelles(problemes)
+    verifier_ansm_signalements(problemes)
     verifier_open_medic(problemes)
     verifier_wayback(problemes, alertes)
     verifier_manifeste(problemes)

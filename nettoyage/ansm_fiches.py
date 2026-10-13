@@ -36,21 +36,11 @@ def atc_unique(atcs):
     return None
 
 
-def construire():
-    lire = lambda nom: pd.read_parquet(CLEAN / f"{nom}.parquet")
-    observations, produits = lire("ansm_observations"), lire("produits")
-    compositions, dispo, atc = lire("bdpm_compositions"), lire("bdpm_dispo_observations"), lire("atc")
+def reperes_atc(produits, compositions, atc):
+    """Tables de correspondance vers l'ATC5 pour les voies 2 à 4 : (cis par nom, ATC par substance, ATC par marque).
 
-    fiches = (observations.sort_values("date_photo").groupby("fiche")
-              .agg(medicament=("medicament", "last"),
-                   substance=("substance", lambda s: s.dropna().iloc[-1] if s.notna().any() else None),
-                   premiere_photo=("date_photo", "min"), derniere_photo=("date_photo", "max"))
-              .reset_index())
-    atc_du_cis = produits.set_index("cis")["atc5"]
-
-    # 1. Lien exact fourni par la BDPM.
-    cis_par_fiche = dispo.dropna(subset=["fiche_ansm"]).groupby("fiche_ansm")["cis"].apply(lambda s: sorted(set(s)))
-
+    Ajoute à `produits` les colonnes `nom_normalise` et `marque`.
+    """
     # 2. Dénomination identique.
     produits["nom_normalise"] = produits["denomination"].map(normaliser_texte)
     cis_par_nom = produits.groupby("nom_normalise")["cis"].apply(list)
@@ -66,6 +56,25 @@ def construire():
     # 4. Marque (premier mot du nom).
     produits["marque"] = produits["nom_normalise"].str.split().str[0]
     atc_par_marque = produits.groupby("marque")["atc5"].agg(atc_unique).dropna().to_dict()
+    return cis_par_nom, atc_par_substance, atc_par_marque
+
+
+def construire():
+    lire = lambda nom: pd.read_parquet(CLEAN / f"{nom}.parquet")
+    observations, produits = lire("ansm_observations"), lire("produits")
+    compositions, dispo, atc = lire("bdpm_compositions"), lire("bdpm_dispo_observations"), lire("atc")
+
+    fiches = (observations.sort_values("date_photo").groupby("fiche")
+              .agg(medicament=("medicament", "last"),
+                   substance=("substance", lambda s: s.dropna().iloc[-1] if s.notna().any() else None),
+                   premiere_photo=("date_photo", "min"), derniere_photo=("date_photo", "max"))
+              .reset_index())
+    atc_du_cis = produits.set_index("cis")["atc5"]
+
+    # 1. Lien exact fourni par la BDPM.
+    cis_par_fiche = dispo.dropna(subset=["fiche_ansm"]).groupby("fiche_ansm")["cis"].apply(lambda s: sorted(set(s)))
+
+    cis_par_nom, atc_par_substance, atc_par_marque = reperes_atc(produits, compositions, atc)
 
     resultats = []
     for fiche in fiches.itertuples():

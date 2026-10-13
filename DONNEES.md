@@ -58,8 +58,20 @@ Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une li
 | `ansm_observations` | une fiche ANSM vue dans une photo de la page | 17 700 |
 | `ansm_fiches` | une fiche ANSM reliée à ses médicaments et à un ATC5 | 1 470 |
 | `ansm_episodes` | un épisode de pénurie en France, avec ses règles de début et de fin | 1 599 |
+| `ansm_signalements` | un signalement officiel d'un laboratoire à l'ANSM (2019-2025), avec ATC5 | 22 501 |
 | `bdpm_dispo_observations` | un signalement BDPM vu dans une photo | 10 807 |
 | `europe_observations`, `europe_episodes` | idem pour l'Italie et l'Allemagne | 171 550 / 15 744 |
+
+**La jointure des deux vues françaises**
+
+| Table | Une ligne = | Lignes | Contenu |
+|---|---|---:|---|
+| `penuries_fr_mensuel` | une substance (ATC5) × un mois | 150 494 | nombre de signalements officiels et de laboratoires qui signalent ; nombre de pénuries affichées sur la page ANSM, nouvelles pénuries, gravité maximale |
+
+Les deux sources viennent de l'ANSM et se recouvrent (453 des 462 substances affichées sur la page ont aussi
+un signalement) : on ne les empile pas, on les met côte à côte. Une valeur vide veut dire « mois non
+couvert par la source » (signalements : 2019 → 2025 ; page : 04/2021 → aujourd'hui), pas zéro.
+Pour prédire, les colonnes de la page au mois *t* ne doivent expliquer que des signalements **postérieurs** à *t*.
 
 ### Les choix de construction importants
 
@@ -71,6 +83,7 @@ Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une li
 | Une fiche peut repasser en pénurie | Chaque retour (après une remise à disposition) est un **nouvel épisode** | 1 599 épisodes pour 1 432 fiches |
 | Pénurie apparue et résolue entre deux photos | Gardée, avec un début seulement borné (`debut_connu` = faux) | 189 épisodes |
 | Épisode déjà en cours à la première archive (avril 2021) | Signalé (`censure_gauche`) | à exclure de l'estimation des durées |
+| Les signalements n'ont pas d'ATC, et pas de code avant 2022 | CIP13 → BDPM (16 200), puis nom (4 121), substance (1 653), marque (237), Open Medic (10) | **98,8 % des signalements** ont un ATC5 ; la voie utilisée est gardée |
 | Italie : pas de colonne ATC avant fin 2024 | ATC repris du même code AIC, puis de la même substance | 94 % des épisodes italiens ont un ATC |
 | Italie : « arrêt définitif de commercialisation » | Ce n'est pas une pénurie : `type_episode` = `arret_definitif` | 3 427 épisodes exclus de la cible |
 
@@ -87,6 +100,11 @@ Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une li
 
 Les agences publient la liste des pénuries **en cours**. Une pénurie terminée disparaît de la liste.
 Or, pour apprendre à prédire, il faut savoir ce qui s'est passé **avant**.
+
+**Pour la France, l'historique officiel existe en partie.** L'ANSM publie chaque année tous les
+signalements de rupture et de risque de rupture reçus des laboratoires (`ansm_signalements/`,
+2019 → 2025). Ils donnent la date de déclaration, donc de quoi construire la cible, mais ni la date
+de fin ni le statut. Pour la durée et la gravité, et pour les autres pays, il faut les archives.
 
 **Notre solution : la Wayback Machine** (web.archive.org). Cette fondation archive
 régulièrement des pages et fichiers publics. En récupérant une archive par mois des listes de
@@ -117,6 +135,13 @@ France, d'où son rôle central : elle donne les cas sans pénurie, indispensabl
 | `CIS_CIP_Dispo_Spec.txt` | 703 | Pénuries en cours : rupture, tension, arrêt, remise à disposition | Cible, côté BDPM |
 | `CIS_MITM.txt` | 7 710 | Médicaments d'intérêt thérapeutique majeur, avec ATC | Criticité officielle française |
 | `documentation_BDPM_v4.pdf` | — | Description officielle des colonnes | Indispensable pour lire les fichiers (ils n'ont pas d'en-têtes) |
+
+#### ANSM : signalements annuels de rupture (`ansm_signalements/`)
+Un classeur Excel par année (2021 à 2023 dans le même), publié au printemps suivant : 1 504 signalements en
+2019, 2 446 en 2020, 2 167 en 2021, 3 761 en 2022, 4 925 en 2023, 3 809 en 2024, 3 889 en 2025.
+Colonnes : date, laboratoire, médicament, DCI, et le code CIP13 depuis 2022.
+**Limites :** MITM uniquement (seuls soumis à déclaration) ; ruptures et simples risques mélangés ;
+un même médicament peut être signalé plusieurs fois ; pas de date de fin ; 2026 pas encore publié.
 
 #### ANSM : page « Disponibilité des produits de santé » (`ansm/actuel/`)
 La liste publique des pénuries, sous forme de page web (HTML) : 297 fiches aujourd'hui, avec statut

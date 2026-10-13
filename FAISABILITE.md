@@ -10,11 +10,14 @@ Tests réels effectués le 05/10/2026 (requêtes HTTP, téléchargements d'écha
 **Faisable**, mais un point bloque la prédiction : les fichiers officiels actuels ne donnent qu'une **photo des pénuries en cours**, pas leur historique.
 La solution testée consiste à **reconstruire l'historique à partir des archives de la Wayback Machine**, qui conserve des captures mensuelles des listes de pénuries depuis 2021.
 
+**Correction du 13/10/2026.** Pour la France, un historique officiel existe : l'ANSM publie chaque année la liste des signalements de rupture et de risque de rupture (2019 → 2025, 22 501 lignes). Il donne la date de déclaration, mais ni la fin ni le statut. On l'utilise comme cible, et la reconstruction Wayback le complète (durée, gravité). Voir [DONNEES.md](DONNEES.md), section 2.
+
 ## 2. Sources testées
 
 | Source | Pays | Accès | Volume constaté | Historique | ATC fourni | Verdict |
 |---|---|---|---|---|---|---|
 | BDPM `CIS_CIP_Dispo_Spec.txt` | FR | Fichier | 703 lignes | Non : uniquement les pénuries actives ou récemment remises à disposition | Non (jointure via CIS) | ✅ base actuelle |
+| ANSM, signalements annuels (classeurs Excel) | FR | Fichier | 22 501 signalements, 1 504 à 4 925 par an | **Oui, officiel : 2019 → 2025**, date de déclaration seulement (ni fin, ni statut) ; MITM uniquement | Non (CIP13 depuis 2022) | ✅ **historique officiel FR** |
 | Page ANSM « Disponibilité des produits de santé » | FR | HTML (une seule page, environ 296 fiches) | ~296 fiches actuelles | **Oui via Wayback : 58 captures mensuelles depuis 04/2021**, contenu analysable (statut, date, nom, forme, substance) | Non | ✅ **source clé de l'historique FR** |
 | AIFA `elenco_medicinali_carenti.csv` | IT | CSV | 2 486 lignes, débuts 2016 → 2026 | Partiel dans le fichier + **47 captures Wayback depuis 10/2021** | **Oui (100 %)** | ✅ très bonne |
 | BfArM Lieferengpässe `/public/csv` | DE | CSV (latin-1, sep `;`) | 963 lignes, 23 colonnes, raison de la pénurie, date de 1re déclaration 2018 → 2026 | Partiel + 12 captures Wayback depuis 07/2024 | **Oui** | ✅ bonne |

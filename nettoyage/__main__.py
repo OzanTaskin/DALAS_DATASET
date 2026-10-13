@@ -6,7 +6,8 @@ Usage :
 """
 import argparse
 
-from . import ansm, ansm_episodes, ansm_fiches, bdpm, europe, evenements, open_medic, produits
+from . import (ansm, ansm_episodes, ansm_fiches, ansm_signalements, bdpm, europe, evenements,
+               france_mensuel, open_medic, produits)
 
 # L'ordre compte : une étape peut lire les tables produites par les précédentes.
 ETAPES = {
@@ -16,8 +17,10 @@ ETAPES = {
     "ansm": ansm.construire,
     "ansm_fiches": ansm_fiches.construire,
     "ansm_episodes": ansm_episodes.construire,
+    "ansm_signalements": ansm_signalements.construire,
     "europe": europe.construire,
     "evenements": evenements.construire,
+    "france_mensuel": france_mensuel.construire,
 }
 
 

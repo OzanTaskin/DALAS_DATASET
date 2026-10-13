@@ -80,8 +80,8 @@ résultats, on peut ajouter une de ces directions :
 | Étape | Statut |
 |---|---|
 | Questions de recherche et faisabilité | ✅ fait |
-| **Niveau 1 : collecte des sources brutes** | ✅ fait (292 fichiers, 483 Mo, vérification complète) |
-| **Niveau 2 : tables nettoyées** | ✅ fait (16 tables, dont `shortage_events` : 17 343 épisodes FR/IT/DE) |
+| **Niveau 1 : collecte des sources brutes** | ✅ fait (297 fichiers, 484 Mo au 13/10/2026, vérification complète) |
+| **Niveau 2 : tables nettoyées** | ✅ fait (18 tables, dont `shortage_events` : 17 413 épisodes FR/IT/DE, `ansm_signalements` : 22 501 signalements officiels 2019-2025, et leur jointure `penuries_fr_mensuel`) |
 | Niveau 3 : datasets finaux (`panel_fr`) | ⏳ à faire, après le cours ML Protocol |
 | TME4 : rapport de 2 pages | ⏳ |
 | TME6 : dashboard | ⏳ |
@@ -114,6 +114,7 @@ collecte/
 ├── __main__.py           point d'entrée : lance les étapes en parallèle, puis la vérification
 ├── commun.py             session HTTP, téléchargement, manifeste (traçabilité)
 ├── sources_actuelles.py  photo du jour : BDPM, ANSM, AIFA, BfArM, EMA
+├── ansm_signalements.py  signalements officiels de rupture, un classeur par année (2019-2025)
 ├── cima.py               API espagnole (plusieurs passages, voir DONNEES.md)
 ├── open_medic.py         consommation française 2019-2025
 ├── wayback.py            historique via les archives de la Wayback Machine
@@ -126,8 +127,10 @@ nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ord
 ├── ansm.py               page ANSM (59 photos) → ansm_observations
 ├── ansm_fiches.py        chaque fiche ANSM reliée à un médicament et un ATC5
 ├── ansm_episodes.py      observations mensuelles → épisodes de pénurie (début, fin)
+├── ansm_signalements.py  classeurs annuels → ansm_signalements (avec ATC5)
 ├── europe.py             Italie, Allemagne → europe_observations, europe_episodes
-└── evenements.py         table centrale shortage_events (FR + IT + DE)
+├── evenements.py         table centrale shortage_events (FR + IT + DE)
+└── france_mensuel.py     signalements + épisodes → penuries_fr_mensuel (substance × mois)
 ```
 
 Le détail des tables et des règles de construction est dans [DONNEES.md](DONNEES.md).
