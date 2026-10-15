@@ -39,7 +39,7 @@ Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une li
 
 | Table | Une ligne = | Lignes | Contenu |
 |---|---|---:|---|
-| **`shortage_events`** | un épisode de pénurie dans un pays | 17 343 | pays, médicament, substance, ATC5, ATC4, début, fin, en cours, type (pénurie / arrêt définitif), gravité (FR), criticité (DE), raison (IT, DE) |
+| **`shortage_events`** | un épisode de pénurie dans un pays | 16 842 | pays, médicament, substance, ATC5, ATC4, début, fin, publication, en cours, type (pénurie / arrêt définitif), gravité (FR), criticité (DE), raison (IT, DE) |
 
 **Les tables qui la décrivent**
 
@@ -58,8 +58,20 @@ Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une li
 | `ansm_observations` | une fiche ANSM vue dans une photo de la page | 17 700 |
 | `ansm_fiches` | une fiche ANSM reliée à ses médicaments et à un ATC5 | 1 470 |
 | `ansm_episodes` | un épisode de pénurie en France, avec ses règles de début et de fin | 1 599 |
+| `ansm_signalements` | un signalement officiel d'un laboratoire à l'ANSM (2019-2025), avec ATC5 | 22 501 |
 | `bdpm_dispo_observations` | un signalement BDPM vu dans une photo | 10 807 |
-| `europe_observations`, `europe_episodes` | idem pour l'Italie et l'Allemagne | 171 550 / 15 744 |
+| `europe_observations`, `europe_episodes` | idem pour l'Italie et l'Allemagne | 171 533 / 15 239 |
+
+**La jointure des deux vues françaises**
+
+| Table | Une ligne = | Lignes | Contenu |
+|---|---|---:|---|
+| `penuries_fr_mensuel` | une substance (ATC5) × un mois | 150 494 | nombre de signalements officiels et de laboratoires qui signalent ; nombre de pénuries affichées sur la page ANSM, nouvelles pénuries, gravité maximale |
+
+Les deux sources viennent de l'ANSM et se recouvrent (453 des 462 substances affichées sur la page ont aussi
+un signalement) : on ne les empile pas, on les met côte à côte. Une valeur vide veut dire « mois non
+couvert par la source » (signalements : 2019 → 2025 ; page : 04/2021 → aujourd'hui), pas zéro.
+Pour prédire, les colonnes de la page au mois *t* ne doivent expliquer que des signalements **postérieurs** à *t*.
 
 ### Les choix de construction importants
 
@@ -71,6 +83,11 @@ Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une li
 | Une fiche peut repasser en pénurie | Chaque retour (après une remise à disposition) est un **nouvel épisode** | 1 599 épisodes pour 1 432 fiches |
 | Pénurie apparue et résolue entre deux photos | Gardée, avec un début seulement borné (`debut_connu` = faux) | 189 épisodes |
 | Épisode déjà en cours à la première archive (avril 2021) | Signalé (`censure_gauche`) | à exclure de l'estimation des durées |
+| Les signalements n'ont pas d'ATC, et pas de code avant 2022 | CIP13 → BDPM (16 200), puis nom (4 121), substance (1 653), marque (237), Open Medic (10) | **98,8 % des signalements** ont un ATC5 ; la voie utilisée est gardée |
+| Italie : l'AIFA révise la date de début d'une pénurie déjà listée (2 857 médicaments, presque toujours vers plus tard) | Un épisode = une présence continue du médicament sur la liste, pas « médicament + date de début » (qui créait un faux épisode à chaque révision) ; la dernière date déclarée sert de début, la première est gardée | 10 074 pénuries italiennes au lieu de 11 046 ; plus de faux épisodes |
+| Allemagne : la déclaration initiale vaut « N/A » pour environ un quart des lignes | « N/A » traité comme vide : la ligne est sa propre déclaration initiale (auparavant, toutes ces lignes formaient un seul faux épisode) | 2 020 pénuries allemandes au lieu de 1 323 |
+| Pénuries annoncées à l'avance (49 % en Italie) | Colonne `publication` = première photo où l'épisode apparaît : c'est la date du signal, à utiliser pour prédire (Q2), pas le début déclaré | pas de fuite d'information |
+| Fin connue seulement entre deux photos | `fin` = dernière photo où l'épisode est publié, `fin_au_plus_tard` = photo suivante | 717 épisodes italiens ont un début après `fin` : pénurie plus courte que l'intervalle entre deux photos, ou annonce retirée |
 | Italie : pas de colonne ATC avant fin 2024 | ATC repris du même code AIC, puis de la même substance | 94 % des épisodes italiens ont un ATC |
 | Italie : « arrêt définitif de commercialisation » | Ce n'est pas une pénurie : `type_episode` = `arret_definitif` | 3 427 épisodes exclus de la cible |
 
@@ -87,6 +104,11 @@ Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une li
 
 Les agences publient la liste des pénuries **en cours**. Une pénurie terminée disparaît de la liste.
 Or, pour apprendre à prédire, il faut savoir ce qui s'est passé **avant**.
+
+**Pour la France, l'historique officiel existe en partie.** L'ANSM publie chaque année tous les
+signalements de rupture et de risque de rupture reçus des laboratoires (`ansm_signalements/`,
+2019 → 2025). Ils donnent la date de déclaration, donc de quoi construire la cible, mais ni la date
+de fin ni le statut. Pour la durée et la gravité, et pour les autres pays, il faut les archives.
 
 **Notre solution : la Wayback Machine** (web.archive.org). Cette fondation archive
 régulièrement des pages et fichiers publics. En récupérant une archive par mois des listes de
@@ -118,6 +140,13 @@ France, d'où son rôle central : elle donne les cas sans pénurie, indispensabl
 | `CIS_MITM.txt` | 7 710 | Médicaments d'intérêt thérapeutique majeur, avec ATC | Criticité officielle française |
 | `documentation_BDPM_v4.pdf` | — | Description officielle des colonnes | Indispensable pour lire les fichiers (ils n'ont pas d'en-têtes) |
 
+#### ANSM : signalements annuels de rupture (`ansm_signalements/`)
+Un classeur Excel par année (2021 à 2023 dans le même), publié au printemps suivant : 1 504 signalements en
+2019, 2 446 en 2020, 2 167 en 2021, 3 761 en 2022, 4 925 en 2023, 3 809 en 2024, 3 889 en 2025.
+Colonnes : date, laboratoire, médicament, DCI, et le code CIP13 depuis 2022.
+**Limites :** MITM uniquement (seuls soumis à déclaration) ; ruptures et simples risques mélangés ;
+un même médicament peut être signalé plusieurs fois ; pas de date de fin ; 2026 pas encore publié.
+
 #### ANSM : page « Disponibilité des produits de santé » (`ansm/actuel/`)
 La liste publique des pénuries, sous forme de page web (HTML) : 297 fiches aujourd'hui, avec statut
 (rupture, tension, remise à disposition), date, nom, forme et substance.
@@ -140,18 +169,14 @@ générique ou non, et **nombre de boîtes remboursées**, détaillé par âge, 
 |---|---|---|---|
 | `aifa/actuel/` | AIFA (agence italienne) | CSV d'environ 2 500 pénuries, avec code ATC, dates, raison et équivalents | Signal Italie ; l'ATC est fourni directement |
 | `bfarm/actuel/` | BfArM (agence allemande) | CSV de 963 déclarations, avec ATC, dates et **raison de la pénurie** | Signal Allemagne ; la raison ouvre la direction E |
-| `cima/actuel/` | AEMPS, API CIMA (agence espagnole) | 893 problèmes d'approvisionnement en JSON (pages de 200) | Signal Espagne |
-| `ema/actuel/` | Agence européenne du médicament | `shortages.json` (85 pénuries suivies au niveau UE), `medicines.json` (2 746 médicaments autorisés au niveau européen), `union_list_critical_medicines.xlsx` (liste des médicaments critiques de l'UE) | Criticité européenne ; complément |
-
-**Note sur CIMA :** l'API espagnole renvoie ses résultats dans un ordre qui change à chaque
-requête. Lire les pages une fois peut donc donner des doublons et des oublis. Le script lit la liste
-plusieurs fois (fichiers `passage01`, `passage02`…) jusqu'à ce qu'un nouveau passage n'apporte plus
-aucune ligne. Les doublons seront retirés au niveau 2.
+**Sources abandonnées (15/10/2026) :** l'Espagne (API CIMA de l'AEMPS) et l'EMA étaient collectées
+mais jamais utilisées. L'API espagnole ne donne ni historique ni code ATC, et les fichiers de l'EMA
+(85 pénuries suivies au niveau européen) n'apportaient rien aux questions. Voir FAISABILITE.md.
 
 ### 🕰️ Historique : archives de la Wayback Machine (`wayback/`)
 
 Une archive par mois. Le fichier `_captures.json` de chaque dossier liste ce qui était disponible
-et sert de référence à la vérification.
+le jour de la collecte.
 
 | Dossier | Archives | Période | Ce que ça donne |
 |---|---:|---|---|
@@ -185,5 +210,5 @@ le modèle. Avec les archives, chaque mois est décrit avec ce qu'on savait à c
   courtes.
 - **Le site de l'ANSM a pu changer de mise en page entre 2021 et 2026.** Le lecteur HTML du niveau 2
   devra gérer plusieurs versions de la page.
-- **Sources avec la seule photo du jour :** compositions BDPM, MITM, EMA et CIMA n'ont pas encore
+- **Sources avec la seule photo du jour :** compositions BDPM et MITM n'ont pas encore
   d'historique. On vérifiera si des archives existent.

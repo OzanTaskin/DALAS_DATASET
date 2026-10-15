@@ -48,10 +48,8 @@ def chemin_capture(nom, extension, horodatage):
 
 
 def captures_attendues(session, nom, urls):
-    """Liste mensuelle des captures d'une cible, enregistrée dans wayback/<nom>/_captures.json.
-
-    Ce fichier sert de référence à la vérification : il dit ce qui *doit* être présent.
-    """
+    """Liste mensuelle des captures d'une cible, enregistrée dans wayback/<nom>/_captures.json
+    (trace de ce qui était disponible le jour de la collecte)."""
     captures = {}
     for url in urls:
         for horodatage, originale in lister_captures(session, url):
@@ -65,12 +63,12 @@ def captures_attendues(session, nom, urls):
     return liste
 
 
-def collecter(session, cibles=None, paralleles=4):
-    selection = [c for c in CIBLES if not cibles or c[0] in cibles]
+def collecter(session):
+    paralleles = 4
     with ThreadPoolExecutor(max_workers=paralleles) as executeur:
-        listes = executeur.map(lambda cible: captures_attendues(session, cible[0], cible[2]), selection)
+        listes = executeur.map(lambda cible: captures_attendues(session, cible[0], cible[2]), CIBLES)
         taches = [(nom, extension, capture)
-                  for (nom, extension, _), liste in zip(selection, listes)
+                  for (nom, extension, _), liste in zip(CIBLES, listes)
                   for capture in liste]
 
     def telecharger_capture(tache):
@@ -79,14 +77,17 @@ def collecter(session, cibles=None, paralleles=4):
         chemin = telecharger(session, archive, chemin_capture(nom, extension, capture["horodatage"]),
                              f"wayback_{nom}")
         time.sleep(PAUSE)
-        return nom, chemin is not None
+        return nom, capture["horodatage"], chemin is not None
 
     # Quelques téléchargements simultanés seulement : au-delà, la Wayback Machine renvoie des 429.
-    bilan = Counter()
+    bilan, echecs = Counter(), []
     with ThreadPoolExecutor(max_workers=paralleles) as executeur:
-        for nom, reussi in executeur.map(telecharger_capture, taches):
+        for nom, horodatage, reussi in executeur.map(telecharger_capture, taches):
             bilan[nom, reussi] += 1
+            if not reussi:
+                echecs.append(f"wayback/{nom}/{horodatage}")
     for nom, *_ in CIBLES:
         total = bilan[nom, True] + bilan[nom, False]
         if total:
             print(f"  {nom:22} {bilan[nom, True]} / {total} captures mensuelles")
+    return echecs

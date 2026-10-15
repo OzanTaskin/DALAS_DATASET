@@ -5,7 +5,6 @@ from datetime import date
 from .commun import telecharger
 
 BDPM = "https://base-donnees-publique.medicaments.gouv.fr/download/file/"
-EMA = "https://www.ema.europa.eu/en/documents/"
 
 # (source, url, nom du fichier dans data/raw/<source>/)
 SOURCES = [
@@ -27,10 +26,6 @@ SOURCES = [
     # Allemagne — déclarations de pénurie (BfArM)
     ("bfarm", "https://anwendungen.pharmnet-bund.de/lieferengpassmeldungen/public/csv",
      "lieferengpassmeldungen.csv"),
-    # Union européenne — EMA
-    ("ema", EMA + "report/shortages-output-json-report_en.json", "shortages.json"),
-    ("ema", EMA + "report/medicines-output-medicines_json-report_en.json", "medicines.json"),
-    ("ema", EMA + "other/union-list-critical-medicines-en.xlsx", "union_list_critical_medicines.xlsx"),
 ]
 
 
@@ -43,6 +38,10 @@ def collecter(session):
         return source, nom, telecharger(session, url, f"{source}/actuel/{jour}_{nom}", source)
 
     # Sites tous différents : on peut tout lancer en même temps.
+    echecs = []
     with ThreadPoolExecutor(max_workers=len(SOURCES)) as executeur:
         for source, nom, chemin in executeur.map(telecharger_source, SOURCES):
             print(f"  {source:6} {nom:40} {'ok' if chemin else 'ÉCHEC'}")
+            if not chemin:
+                echecs.append(f"{source}/{nom}")
+    return echecs

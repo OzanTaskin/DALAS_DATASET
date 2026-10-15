@@ -35,8 +35,9 @@ def telecharger_annee(session, annee):
                        "open_medic", timeout=900, valider=est_un_zip)
 
 
-def collecter(session, annees=ANNEES):
-    for annee in annees:
+def collecter(session):
+    echecs = []
+    for annee in ANNEES:
         for tentative in range(1, TENTATIVES + 1):
             if telecharger_annee(session, annee):
                 print(f"  open_medic {annee} ok")
@@ -44,3 +45,5 @@ def collecter(session, annees=ANNEES):
             time.sleep(PAUSE_REFUS)
         else:
             print(f"  open_medic {annee} ÉCHEC après {TENTATIVES} tentatives")
+            echecs.append(f"open_medic/{annee}")
+    return echecs

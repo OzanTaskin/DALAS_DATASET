@@ -4,7 +4,9 @@ dans un pays, au même format pour la France, l'Italie et l'Allemagne.
 Colonnes communes :
     pays, id_episode, medicament, substance, atc5, atc4, debut, fin, en_cours,
     type_episode (penurie / arret_definitif), gravite (FR), criticite (DE), raison (IT, DE),
-    debut_connu (faux si le début n'est connu qu'approximativement)
+    debut_connu (faux si le début n'est connu qu'approximativement),
+    publication (première photo où l'épisode est publié : la date à laquelle on le sait ; vide pour
+    les épisodes français vus seulement à leur remise à disposition)
 La France vient de `ansm_episodes`, l'Italie et l'Allemagne de `europe_episodes`.
 """
 import pandas as pd
@@ -12,7 +14,7 @@ import pandas as pd
 from .commun import CLEAN, enregistrer
 
 COLONNES = ["pays", "id_episode", "medicament", "substance", "atc5", "atc4", "debut", "fin",
-            "en_cours", "type_episode", "gravite", "criticite", "raison", "debut_connu"]
+            "en_cours", "type_episode", "gravite", "criticite", "raison", "debut_connu", "publication"]
 
 
 def construire():
@@ -25,7 +27,8 @@ def construire():
         # Épisode vu seulement à sa remise à disposition : début borné par la photo précédente.
         debut_connu=france["debut"].notna(),
         debut=france["debut"].fillna(france["debut_au_plus_tot"]),
-        type_episode="penurie", gravite=france["gravite_max"], criticite=None, raison=None)
+        type_episode="penurie", gravite=france["gravite_max"], criticite=None, raison=None,
+        publication=france["premiere_photo_active"])
     europe = europe.assign(gravite=None, debut_connu=True)
 
     evenements = pd.concat([france, europe], ignore_index=True)

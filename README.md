@@ -47,7 +47,7 @@ Exemple : pénurie d'amoxicilline → report des prescriptions sur l'amoxicillin
 
 ### Question 2 : pénuries « importées » d'Europe
 
-**Une pénurie chez nos voisins (Italie, Allemagne, Espagne) annonce-t-elle une pénurie en France ?**
+**Une pénurie chez nos voisins (Italie, Allemagne) annonce-t-elle une pénurie en France ?**
 Si oui, les listes étrangères sont un signal d'alerte précoce.
 
 ### Pourquoi la France est au centre
@@ -80,8 +80,8 @@ résultats, on peut ajouter une de ces directions :
 | Étape | Statut |
 |---|---|
 | Questions de recherche et faisabilité | ✅ fait |
-| **Niveau 1 : collecte des sources brutes** | ✅ fait (292 fichiers, 483 Mo, vérification complète) |
-| **Niveau 2 : tables nettoyées** | ✅ fait (16 tables, dont `shortage_events` : 17 343 épisodes FR/IT/DE) |
+| **Niveau 1 : collecte des sources brutes** | ✅ fait (271 fichiers, 476 Mo au 15/10/2026 ; la collecte échoue si un téléchargement manque) |
+| **Niveau 2 : tables nettoyées** | ✅ fait (18 tables, dont `shortage_events` : 16 842 épisodes FR/IT/DE, `ansm_signalements` : 22 501 signalements officiels 2019-2025, et leur jointure `penuries_fr_mensuel`) |
 | Niveau 3 : datasets finaux (`panel_fr`) | ⏳ à faire, après le cours ML Protocol |
 | TME4 : rapport de 2 pages | ⏳ |
 | TME6 : dashboard | ⏳ |
@@ -95,15 +95,14 @@ script. Il faut Python 3.10 ou plus récent et environ 500 Mo d'espace disque.
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m collecte                 # niveau 1 : tout, en parallèle (≈ 10 min), puis vérification
-.venv/bin/python -m nettoyage                # niveau 2 : tables nettoyées dans data/clean/ (≈ 30 s)
-.venv/bin/python -m collecte actuelles cima  # seulement certaines étapes
-.venv/bin/python -m collecte verification    # contrôle de complétude, sans téléchargement
+.venv/bin/python -m collecte                    # niveau 1 : tout, en parallèle (≈ 10 min)
+.venv/bin/python -m nettoyage                   # niveau 2 : tables nettoyées dans data/clean/ (≈ 30 s)
+.venv/bin/python -m collecte actuelles wayback  # seulement certaines étapes
 ```
 
 - La collecte peut être relancée : les fichiers déjà présents ne sont pas retéléchargés.
-- La vérification finale contrôle que chaque fichier attendu est présent, au bon format et tracé dans
-  le manifeste avec la même empreinte ; elle échoue sinon.
+- Si un téléchargement échoue (archive Wayback refusée, serveur indisponible…), la collecte se termine
+  en erreur avec la liste des fichiers manquants : il suffit de la relancer.
 - Les sources évoluent : relancer plus tard donnera une photo du jour plus récente. Les archives
   passées, elles, ne changent pas.
 
@@ -111,13 +110,12 @@ python3 -m venv .venv
 
 ```
 collecte/
-├── __main__.py           point d'entrée : lance les étapes en parallèle, puis la vérification
+├── __main__.py           point d'entrée : lance les étapes en parallèle, échoue si un fichier manque
 ├── commun.py             session HTTP, téléchargement, manifeste (traçabilité)
-├── sources_actuelles.py  photo du jour : BDPM, ANSM, AIFA, BfArM, EMA
-├── cima.py               API espagnole (plusieurs passages, voir DONNEES.md)
+├── sources_actuelles.py  photo du jour : BDPM, ANSM, AIFA, BfArM
+├── ansm_signalements.py  signalements officiels de rupture, un classeur par année (2019-2025)
 ├── open_medic.py         consommation française 2019-2025
-├── wayback.py            historique via les archives de la Wayback Machine
-└── verification.py       contrôle de complétude de data/raw
+└── wayback.py            historique via les archives de la Wayback Machine
 
 nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ordre
 ├── bdpm.py               base des médicaments → bdpm_* (+ signalements archivés)
@@ -126,8 +124,10 @@ nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ord
 ├── ansm.py               page ANSM (59 photos) → ansm_observations
 ├── ansm_fiches.py        chaque fiche ANSM reliée à un médicament et un ATC5
 ├── ansm_episodes.py      observations mensuelles → épisodes de pénurie (début, fin)
+├── ansm_signalements.py  classeurs annuels → ansm_signalements (avec ATC5)
 ├── europe.py             Italie, Allemagne → europe_observations, europe_episodes
-└── evenements.py         table centrale shortage_events (FR + IT + DE)
+├── evenements.py         table centrale shortage_events (FR + IT + DE)
+└── france_mensuel.py     signalements + épisodes → penuries_fr_mensuel (substance × mois)
 ```
 
 Le détail des tables et des règles de construction est dans [DONNEES.md](DONNEES.md).
@@ -136,6 +136,3 @@ Le détail des tables et des règles de construction est dans [DONNEES.md](DONNE
 
 - **Open Medic** refuse les téléchargements simultanés et renvoie alors un message d'erreur au lieu
   de l'archive : les années sont téléchargées une par une et chaque ZIP est contrôlé.
-- **CIMA (Espagne)** : le total annoncé par l'API dépend de la page et l'ordre des résultats n'est pas
-  stable. La liste est lue plusieurs fois jusqu'à ce que l'union des lignes ne change plus ; les
-  doublons seront retirés au nettoyage.
