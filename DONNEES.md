@@ -39,7 +39,7 @@ Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une li
 
 | Table | Une ligne = | Lignes | Contenu |
 |---|---|---:|---|
-| **`shortage_events`** | un épisode de pénurie dans un pays | 17 343 | pays, médicament, substance, ATC5, ATC4, début, fin, en cours, type (pénurie / arrêt définitif), gravité (FR), criticité (DE), raison (IT, DE) |
+| **`shortage_events`** | un épisode de pénurie dans un pays | 16 842 | pays, médicament, substance, ATC5, ATC4, début, fin, publication, en cours, type (pénurie / arrêt définitif), gravité (FR), criticité (DE), raison (IT, DE) |
 
 **Les tables qui la décrivent**
 
@@ -60,7 +60,7 @@ Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une li
 | `ansm_episodes` | un épisode de pénurie en France, avec ses règles de début et de fin | 1 599 |
 | `ansm_signalements` | un signalement officiel d'un laboratoire à l'ANSM (2019-2025), avec ATC5 | 22 501 |
 | `bdpm_dispo_observations` | un signalement BDPM vu dans une photo | 10 807 |
-| `europe_observations`, `europe_episodes` | idem pour l'Italie et l'Allemagne | 171 550 / 15 744 |
+| `europe_observations`, `europe_episodes` | idem pour l'Italie et l'Allemagne | 171 533 / 15 239 |
 
 **La jointure des deux vues françaises**
 
@@ -84,6 +84,10 @@ Pour prédire, les colonnes de la page au mois *t* ne doivent expliquer que des 
 | Pénurie apparue et résolue entre deux photos | Gardée, avec un début seulement borné (`debut_connu` = faux) | 189 épisodes |
 | Épisode déjà en cours à la première archive (avril 2021) | Signalé (`censure_gauche`) | à exclure de l'estimation des durées |
 | Les signalements n'ont pas d'ATC, et pas de code avant 2022 | CIP13 → BDPM (16 200), puis nom (4 121), substance (1 653), marque (237), Open Medic (10) | **98,8 % des signalements** ont un ATC5 ; la voie utilisée est gardée |
+| Italie : l'AIFA révise la date de début d'une pénurie déjà listée (2 857 médicaments, presque toujours vers plus tard) | Un épisode = une présence continue du médicament sur la liste, pas « médicament + date de début » (qui créait un faux épisode à chaque révision) ; la dernière date déclarée sert de début, la première est gardée | 10 074 pénuries italiennes au lieu de 11 046 ; plus de faux épisodes |
+| Allemagne : la déclaration initiale vaut « N/A » pour environ un quart des lignes | « N/A » traité comme vide : la ligne est sa propre déclaration initiale (auparavant, toutes ces lignes formaient un seul faux épisode) | 2 020 pénuries allemandes au lieu de 1 323 |
+| Pénuries annoncées à l'avance (49 % en Italie) | Colonne `publication` = première photo où l'épisode apparaît : c'est la date du signal, à utiliser pour prédire (Q2), pas le début déclaré | pas de fuite d'information |
+| Fin connue seulement entre deux photos | `fin` = dernière photo où l'épisode est publié, `fin_au_plus_tard` = photo suivante | 717 épisodes italiens ont un début après `fin` : pénurie plus courte que l'intervalle entre deux photos, ou annonce retirée |
 | Italie : pas de colonne ATC avant fin 2024 | ATC repris du même code AIC, puis de la même substance | 94 % des épisodes italiens ont un ATC |
 | Italie : « arrêt définitif de commercialisation » | Ce n'est pas une pénurie : `type_episode` = `arret_definitif` | 3 427 épisodes exclus de la cible |
 

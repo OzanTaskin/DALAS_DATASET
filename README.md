@@ -81,7 +81,7 @@ résultats, on peut ajouter une de ces directions :
 |---|---|
 | Questions de recherche et faisabilité | ✅ fait |
 | **Niveau 1 : collecte des sources brutes** | ✅ fait (297 fichiers, 484 Mo au 13/10/2026, vérification complète) |
-| **Niveau 2 : tables nettoyées** | ✅ fait (18 tables, dont `shortage_events` : 17 413 épisodes FR/IT/DE, `ansm_signalements` : 22 501 signalements officiels 2019-2025, et leur jointure `penuries_fr_mensuel`) |
+| **Niveau 2 : tables nettoyées** | ✅ fait (18 tables, dont `shortage_events` : 16 842 épisodes FR/IT/DE, `ansm_signalements` : 22 501 signalements officiels 2019-2025, et leur jointure `penuries_fr_mensuel`) |
 | Niveau 3 : datasets finaux (`panel_fr`) | ⏳ à faire, après le cours ML Protocol |
 | TME4 : rapport de 2 pages | ⏳ |
 | TME6 : dashboard | ⏳ |

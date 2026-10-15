@@ -4,12 +4,23 @@ Ces listes servent de signaux européens (question 2). Chaque photo (archives Wa
 jour) donne les pénuries publiées à cette date.
 
 Épisode :
-- Italie : un médicament (code AIC) et une date de début (« Data inizio ») ;
+- Italie : une période de présence continue d'un médicament (code AIC) sur la liste, comme pour
+  la France : une absence d'une seule photo ne coupe pas l'épisode. L'AIFA révise souvent la date
+  de début d'une pénurie déjà listée (2 857 médicaments, presque toujours vers plus tard) : la date
+  ne peut donc pas servir à identifier l'épisode, sinon chaque révision crée un faux épisode ;
 - Allemagne : une déclaration initiale (« Referenzierte Erstmeldung », ou le numéro de la
-  déclaration elle-même si c'est la première). Une déclaration couvre souvent plusieurs boîtes (PZN).
+  déclaration elle-même si c'est la première, ce que le BfArM écrit vide ou « N/A »). Une déclaration couvre souvent plusieurs boîtes (PZN).
 
-Début : date de début déclarée. Fin : dernière photo où l'épisode est publié (la fin réelle se
-situe avant la photo suivante) ; s'il est publié dans la dernière photo, il est `en_cours`.
+Dates :
+- `publication` : première photo où l'épisode est publié. C'est la date à laquelle le signal est
+  connu : c'est elle, et non le début déclaré, qu'il faut utiliser pour prédire ;
+- `debut` : date de début déclarée. En Italie, la dernière déclarée (la plus à jour) ;
+  `debut_declare_initial` garde la première. Elle peut être postérieure à la publication
+  (pénurie annoncée à l'avance), voire à la fin si l'annonce a été retirée avant cette date ;
+- `fin` : dernière photo où l'épisode est publié ; `fin_au_plus_tard` : la photo suivante, où il
+  n'est plus publié. La fin réelle est entre les deux. S'il est publié dans la dernière photo, il
+  est `en_cours`. Quand `debut` > `fin`, la pénurie annoncée a duré moins que l'intervalle entre
+  deux photos, ou l'annonce a été retirée avant la date prévue.
 ATC : seuls les codes ATC5 valides sont gardés. En Italie, la colonne ATC n'existe que depuis
 fin 2024 : pour les photos plus anciennes, on reprend l'ATC connu du même code AIC, sinon
 celui de la même substance.
@@ -63,7 +74,9 @@ def lire_bfarm(chemin):
     return pd.DataFrame({
         "pays": "DE",
         "date_photo": pd.Timestamp(date_du_fichier(chemin)),
-        "id_episode": initiale.where(initiale != "", table["Bearbeitungsnummer"].str.strip()),
+        # « N/A » (environ un quart des lignes) veut dire « pas de déclaration initiale » : la ligne est
+        # elle-même la première déclaration. Sinon, toutes ces lignes formeraient un seul faux épisode.
+        "id_episode": initiale.where(~initiale.isin(["", "N/A"]), table["Bearbeitungsnummer"].str.strip()),
         "code_produit": table["PZN"].str.strip(),
         "medicament": table["Arzneimittlbezeichnung"].str.strip(),
         "substance": table["Wirkstoffe"].str.strip(),
@@ -74,6 +87,37 @@ def lire_bfarm(chemin):
         # Colonne ajoutée en cours de route : absente des archives les plus anciennes.
         "criticite": table["klassifikation"].str.strip().replace("", None) if "klassifikation" in table else None,
     })
+
+
+def episodes_italiens(observations):
+    """Identifiant d'épisode italien : AIC + mois de la première photo d'une présence continue.
+
+    Un nouvel épisode commence quand le médicament était absent de plus d'une photo, ou quand il
+    passe de pénurie à arrêt définitif (ou l'inverse).
+    """
+    italie = observations["pays"] == "IT"
+    it = observations[italie].copy()
+    it["arret"] = it["raison"].fillna("").str.contains("Cessata commercializzazione definitiva")
+    rang = {photo: i for i, photo in enumerate(sorted(it["date_photo"].unique()))}
+    it["rang"] = it["date_photo"].map(rang)
+
+    presences = (it.groupby(["code_produit", "rang"], as_index=False).agg(arret=("arret", "max"))
+                 .sort_values(["code_produit", "rang"]))
+    par_produit = presences.groupby("code_produit")
+    presences["nouveau"] = (par_produit["rang"].diff().isna() | (par_produit["rang"].diff() > 2)
+                            | (par_produit["arret"].shift() != presences["arret"]))
+    presences["numero"] = presences.groupby("code_produit")["nouveau"].cumsum()
+    premiere = presences.groupby(["code_produit", "numero"])["rang"].transform("min")
+    photos = sorted(rang)
+    presences["id_episode"] = (presences["code_produit"] + "_"
+                               + premiere.map(lambda r: f"{pd.Timestamp(photos[r]):%Y%m}"))
+
+    # Affectation en place : l'ordre des lignes ne change pas.
+    ids = presences.set_index(["code_produit", "rang"])["id_episode"]
+    observations = observations.copy()
+    observations.loc[italie, "id_episode"] = ids.reindex(
+        pd.MultiIndex.from_frame(it[["code_produit", "rang"]])).to_numpy()
+    return observations
 
 
 def construire():
@@ -94,7 +138,7 @@ def construire():
     manquant = observations["atc5"].isna()
     cles = pd.MultiIndex.from_frame(observations.loc[manquant, ["pays", "substance"]])
     observations.loc[manquant, "atc5"] = atc_par_substance.reindex(cles).to_numpy()
-    observations = observations.drop_duplicates()
+    observations = episodes_italiens(observations.drop_duplicates())
     enregistrer(observations, "europe_observations")
 
     derniere_photo = observations.groupby("pays")["date_photo"].max()
@@ -102,15 +146,27 @@ def construire():
                 .agg(medicament=("medicament", "last"), substance=("substance", "last"),
                      atc5=("atc5", lambda s: s.dropna().mode().iloc[0] if s.notna().any() else None),
                      nb_produits=("code_produit", "nunique"),
-                     debut=("debut", "min"), fin_prevue=("fin_prevue", "last"),
+                     debut_min=("debut", "min"), debut_declare_initial=("debut", "first"),
+                     debut_dernier=("debut", "last"), fin_prevue=("fin_prevue", "last"),
                      premiere_photo=("date_photo", "min"), derniere_photo=("date_photo", "max"),
                      raison=("raison", "last"), criticite=("criticite", "last"))
                 .reset_index())
+    # Italie : la date la plus à jour ; Allemagne : la plus ancienne déclarée pour la déclaration initiale.
+    episodes.insert(episodes.columns.get_loc("debut_min"), "debut",
+                    episodes["debut_dernier"].where(episodes["pays"] == "IT", episodes["debut_min"]))
+    episodes = episodes.drop(columns=["debut_min", "debut_dernier"])
+    episodes["publication"] = episodes["premiere_photo"]
     # Un arrêt définitif de commercialisation n'est pas une pénurie : on le distingue.
     arret = episodes["raison"].fillna("").str.contains("Cessata commercializzazione definitiva")
     episodes["type_episode"] = arret.map({True: "arret_definitif", False: "penurie"})
     episodes["en_cours"] = episodes["derniere_photo"] == episodes["pays"].map(derniere_photo)
     episodes["fin"] = episodes["derniere_photo"].where(~episodes["en_cours"])
+    photos_par_pays = observations.groupby("pays")["date_photo"].unique().map(sorted)
+    photo_suivante = {(pays, photo): suivante for pays, photos in photos_par_pays.items()
+                      for photo, suivante in zip(photos, photos[1:])}
+    episodes["fin_au_plus_tard"] = [photo_suivante.get((pays, fin)) if pd.notna(fin) else pd.NaT
+                                    for pays, fin in zip(episodes["pays"], episodes["fin"])]
+    episodes["fin_au_plus_tard"] = pd.to_datetime(episodes["fin_au_plus_tard"])
     enregistrer(episodes, "europe_episodes")
     for pays, groupe in episodes.groupby("pays"):
         print(f"  {pays} : {len(groupe)} épisodes, ATC5 connu pour {groupe['atc5'].notna().mean():.0%}")
