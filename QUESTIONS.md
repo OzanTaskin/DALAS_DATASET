@@ -8,7 +8,7 @@
 ## Pourquoi recentrer sur la France
 
 Seule la France publie l'**univers complet** des médicaments commercialisés (BDPM), donc aussi ceux qui ne sont jamais en pénurie.
-C'est indispensable pour prédire. L'Italie, l'Allemagne et l'Espagne ne publient que leurs listes de pénuries.
+C'est indispensable pour prédire. L'Italie et l'Allemagne ne publient que leurs listes de pénuries.
 On les utilise donc comme **signaux extérieurs**, sur le même ensemble de substances (codes ATC5) que la France.
 
 ## Question principale — prévisibilité
@@ -27,7 +27,7 @@ On les utilise donc comme **signaux extérieurs**, sur le même ensemble de subs
 
 ## Question 2 — pénuries « importées » d'Europe
 
-**Les pénuries chez nos voisins européens (Italie, Allemagne, Espagne) annoncent-elles des pénuries en France ?**
+**Les pénuries chez nos voisins européens (Italie, Allemagne) annoncent-elles des pénuries en France ?**
 
 - Une pénurie de la même substance déclarée à l'étranger dans les mois précédents augmente-t-elle le risque en France ?
 - Ce signal européen améliore-t-il la prédiction (modèle avec / sans variables européennes) ?

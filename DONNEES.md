@@ -169,18 +169,14 @@ générique ou non, et **nombre de boîtes remboursées**, détaillé par âge, 
 |---|---|---|---|
 | `aifa/actuel/` | AIFA (agence italienne) | CSV d'environ 2 500 pénuries, avec code ATC, dates, raison et équivalents | Signal Italie ; l'ATC est fourni directement |
 | `bfarm/actuel/` | BfArM (agence allemande) | CSV de 963 déclarations, avec ATC, dates et **raison de la pénurie** | Signal Allemagne ; la raison ouvre la direction E |
-| `cima/actuel/` | AEMPS, API CIMA (agence espagnole) | 893 problèmes d'approvisionnement en JSON (pages de 200) | Signal Espagne |
-| `ema/actuel/` | Agence européenne du médicament | `shortages.json` (85 pénuries suivies au niveau UE), `medicines.json` (2 746 médicaments autorisés au niveau européen), `union_list_critical_medicines.xlsx` (liste des médicaments critiques de l'UE) | Criticité européenne ; complément |
-
-**Note sur CIMA :** l'API espagnole renvoie ses résultats dans un ordre qui change à chaque
-requête. Lire les pages une fois peut donc donner des doublons et des oublis. Le script lit la liste
-plusieurs fois (fichiers `passage01`, `passage02`…) jusqu'à ce qu'un nouveau passage n'apporte plus
-aucune ligne. Les doublons seront retirés au niveau 2.
+**Sources abandonnées (15/10/2026) :** l'Espagne (API CIMA de l'AEMPS) et l'EMA étaient collectées
+mais jamais utilisées. L'API espagnole ne donne ni historique ni code ATC, et les fichiers de l'EMA
+(85 pénuries suivies au niveau européen) n'apportaient rien aux questions. Voir FAISABILITE.md.
 
 ### 🕰️ Historique : archives de la Wayback Machine (`wayback/`)
 
 Une archive par mois. Le fichier `_captures.json` de chaque dossier liste ce qui était disponible
-et sert de référence à la vérification.
+le jour de la collecte.
 
 | Dossier | Archives | Période | Ce que ça donne |
 |---|---:|---|---|
@@ -214,5 +210,5 @@ le modèle. Avec les archives, chaque mois est décrit avec ce qu'on savait à c
   courtes.
 - **Le site de l'ANSM a pu changer de mise en page entre 2021 et 2026.** Le lecteur HTML du niveau 2
   devra gérer plusieurs versions de la page.
-- **Sources avec la seule photo du jour :** compositions BDPM, MITM, EMA et CIMA n'ont pas encore
+- **Sources avec la seule photo du jour :** compositions BDPM et MITM n'ont pas encore
   d'historique. On vérifiera si des archives existent.

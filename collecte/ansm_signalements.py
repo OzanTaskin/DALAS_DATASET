@@ -28,11 +28,11 @@ def est_un_classeur(contenu):
     return contenu[:4] == b"PK\x03\x04"
 
 
-def chemin_classeur(nom):
-    return f"ansm_signalements/{nom}"
-
-
 def collecter(session):
+    echecs = []
     for nom, url in CLASSEURS:
-        chemin = telecharger(session, url, chemin_classeur(nom), "ansm_signalements", valider=est_un_classeur)
+        chemin = telecharger(session, url, f"ansm_signalements/{nom}", "ansm_signalements", valider=est_un_classeur)
         print(f"  ansm_signalements {nom:30} {'ok' if chemin else 'ÉCHEC'}")
+        if not chemin:
+            echecs.append(f"ansm_signalements/{nom}")
+    return echecs
