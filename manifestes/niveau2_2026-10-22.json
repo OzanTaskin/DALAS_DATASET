@@ -1,0 +1,514 @@
+{
+ "ansm_episodes": {
+  "construite_le": "2026-10-22T19:11:59",
+  "lignes": 1599,
+  "colonnes": [
+   "fiche",
+   "numero_episode",
+   "debut",
+   "debut_au_plus_tot",
+   "censure_gauche",
+   "premiere_photo",
+   "premiere_photo_active",
+   "gravite_max",
+   "derniere_photo_active",
+   "fin",
+   "type_fin",
+   "fin_connue_le",
+   "source_debut",
+   "en_cours",
+   "duree_jours",
+   "medicament",
+   "substance",
+   "atc5",
+   "methode_rapprochement"
+  ],
+  "valeurs_vides": 2578,
+  "sommes": {
+   "numero_episode": 1789.0,
+   "censure_gauche": 191.0,
+   "en_cours": 180.0,
+   "duree_jours": 293157.0
+  },
+  "empreinte_contenu": "b1b138363a70dbe7",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "ansm_fiches": {
+  "construite_le": "2026-10-22T19:11:58",
+  "lignes": 1470,
+  "colonnes": [
+   "fiche",
+   "medicament",
+   "substance",
+   "premiere_photo",
+   "derniere_photo",
+   "cis",
+   "atc5",
+   "methode_rapprochement"
+  ],
+  "valeurs_vides": 917,
+  "sommes": {},
+  "empreinte_contenu": "489fd88caf6e9bff",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "ansm_observations": {
+  "construite_le": "2026-10-22T19:11:56",
+  "lignes": 17700,
+  "colonnes": [
+   "date_photo",
+   "origine_photo",
+   "fiche",
+   "statut",
+   "date_mise_a_jour",
+   "medicament",
+   "substance",
+   "date_remise_a_disposition",
+   "domaine_medical"
+  ],
+  "valeurs_vides": 32394,
+  "sommes": {},
+  "empreinte_contenu": "def8e5406dd63c37",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "ansm_signalements": {
+  "construite_le": "2026-10-22T19:12:02",
+  "lignes": 22501,
+  "colonnes": [
+   "date_signalement",
+   "annee",
+   "laboratoire",
+   "cip13",
+   "medicament",
+   "dci",
+   "cis",
+   "atc5",
+   "methode_rapprochement"
+  ],
+  "valeurs_vides": 8834,
+  "sommes": {
+   "annee": 45509661.0
+  },
+  "empreinte_contenu": "005289ddd2c8953d",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "atc": {
+  "construite_le": "2026-10-22T19:11:53",
+  "lignes": 1333,
+  "colonnes": [
+   "atc1",
+   "atc2",
+   "atc3",
+   "atc4",
+   "atc5",
+   "libelle_atc1",
+   "libelle_atc2",
+   "libelle_atc3",
+   "libelle_atc4",
+   "libelle_atc5"
+  ],
+  "valeurs_vides": 0,
+  "sommes": {},
+  "empreinte_contenu": "98e6a490da906efd",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "bdpm_compositions": {
+  "construite_le": "2026-10-22T19:11:35",
+  "lignes": 32439,
+  "colonnes": [
+   "cis",
+   "element_pharmaceutique",
+   "code_substance",
+   "substance",
+   "dosage",
+   "reference_dosage",
+   "nature_composant",
+   "numero_liaison"
+  ],
+  "valeurs_vides": 5688,
+  "sommes": {},
+  "empreinte_contenu": "2cfb4b1130959112",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "bdpm_dispo_observations": {
+  "construite_le": "2026-10-22T19:11:35",
+  "lignes": 10807,
+  "colonnes": [
+   "date_photo",
+   "origine_photo",
+   "cis",
+   "cip13",
+   "code_statut",
+   "statut",
+   "date_debut",
+   "date_mise_a_jour",
+   "date_remise_a_disposition",
+   "url_ansm",
+   "fiche_ansm"
+  ],
+  "valeurs_vides": 18356,
+  "sommes": {},
+  "empreinte_contenu": "fb7d66aa264c2d97",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "bdpm_generiques": {
+  "construite_le": "2026-10-22T19:11:35",
+  "lignes": 10737,
+  "colonnes": [
+   "groupe_generique",
+   "libelle_groupe",
+   "cis",
+   "type_generique",
+   "numero_tri"
+  ],
+  "valeurs_vides": 0,
+  "sommes": {},
+  "empreinte_contenu": "7aee188b6eaab1cf",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "bdpm_generiques_historique": {
+  "construite_le": "2026-10-22T19:11:40",
+  "lignes": 15810,
+  "colonnes": [
+   "groupe_generique",
+   "cis",
+   "type_generique",
+   "valid_from",
+   "valid_to"
+  ],
+  "valeurs_vides": 10737,
+  "sommes": {},
+  "empreinte_contenu": "15ccd4967d967a3f",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "bdpm_mitm": {
+  "construite_le": "2026-10-22T19:11:35",
+  "lignes": 7711,
+  "colonnes": [
+   "cis",
+   "atc5",
+   "denomination",
+   "lien_bdpm"
+  ],
+  "valeurs_vides": 0,
+  "sommes": {},
+  "empreinte_contenu": "d7ce10bce73f6d14",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "bdpm_presentations": {
+  "construite_le": "2026-10-22T19:11:35",
+  "lignes": 20923,
+  "colonnes": [
+   "cis",
+   "cip7",
+   "libelle_presentation",
+   "statut_administratif",
+   "etat_commercialisation",
+   "date_declaration_commercialisation",
+   "cip13",
+   "agrement_collectivites",
+   "taux_remboursement",
+   "prix_hors_honoraires",
+   "prix_avec_honoraires",
+   "honoraires",
+   "indications_remboursement"
+  ],
+  "valeurs_vides": 50252,
+  "sommes": {
+   "prix_hors_honoraires": 632996.44,
+   "prix_avec_honoraires": 648539.6,
+   "honoraires": 17054.94
+  },
+  "empreinte_contenu": "e65a592354a812ef",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "bdpm_presentations_historique": {
+  "construite_le": "2026-10-22T19:11:40",
+  "lignes": 38776,
+  "colonnes": [
+   "cip13",
+   "cis",
+   "commercialisee",
+   "valid_from",
+   "valid_to"
+  ],
+  "valeurs_vides": 20923,
+  "sommes": {
+   "commercialisee": 27221.0
+  },
+  "empreinte_contenu": "f2961d0bf671daef",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "bdpm_specialites": {
+  "construite_le": "2026-10-22T19:11:35",
+  "lignes": 15883,
+  "colonnes": [
+   "cis",
+   "denomination",
+   "forme",
+   "voies",
+   "statut_amm",
+   "procedure_amm",
+   "etat_commercialisation",
+   "date_amm",
+   "statut_bdm",
+   "numero_autorisation_europeenne",
+   "titulaires",
+   "surveillance_renforcee"
+  ],
+  "valeurs_vides": 27162,
+  "sommes": {},
+  "empreinte_contenu": "0dc0aeb98b31408b",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "bdpm_specialites_historique": {
+  "construite_le": "2026-10-22T19:11:37",
+  "lignes": 42206,
+  "colonnes": [
+   "cis",
+   "denomination",
+   "forme",
+   "voies",
+   "titulaires",
+   "commercialise",
+   "valid_from",
+   "valid_to"
+  ],
+  "valeurs_vides": 15883,
+  "sommes": {
+   "commercialise": 34247.0
+  },
+  "empreinte_contenu": "a31f52750854a69a",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "cip_atc": {
+  "construite_le": "2026-10-22T19:11:53",
+  "lignes": 15963,
+  "colonnes": [
+   "cip13",
+   "libelle_cip13",
+   "atc5",
+   "generique",
+   "groupe_generique",
+   "derniere_annee_remboursee"
+  ],
+  "valeurs_vides": 0,
+  "sommes": {
+   "generique": 8670.0,
+   "derniere_annee_remboursee": 32313578.0
+  },
+  "empreinte_contenu": "8ed378bf6d3eaae7",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "consommation": {
+  "construite_le": "2026-10-22T19:11:53",
+  "lignes": 8045,
+  "colonnes": [
+   "atc5",
+   "annee",
+   "boites",
+   "montant_rembourse",
+   "nb_presentations"
+  ],
+  "valeurs_vides": 0,
+  "sommes": {
+   "annee": 16267184.0,
+   "boites": 16239710598.0,
+   "montant_rembourse": 159731926517.83,
+   "nb_presentations": 88155.0
+  },
+  "empreinte_contenu": "e244c280544649da",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "europe_episodes": {
+  "construite_le": "2026-10-22T19:12:05",
+  "lignes": 15170,
+  "colonnes": [
+   "pays",
+   "id_episode",
+   "medicament",
+   "substance",
+   "atc5",
+   "nb_produits",
+   "debut",
+   "debut_declare_initial",
+   "fin_prevue",
+   "premiere_photo",
+   "derniere_photo",
+   "raison",
+   "criticite",
+   "publication",
+   "type_episode",
+   "en_cours",
+   "fin",
+   "fin_au_plus_tard"
+  ],
+  "valeurs_vides": 29025,
+  "sommes": {
+   "nb_produits": 16463.0,
+   "en_cours": 3033.0
+  },
+  "empreinte_contenu": "f35226518402381e",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "europe_observations": {
+  "construite_le": "2026-10-22T19:12:03",
+  "lignes": 171552,
+  "colonnes": [
+   "pays",
+   "date_photo",
+   "id_episode",
+   "code_produit",
+   "medicament",
+   "substance",
+   "atc5",
+   "debut",
+   "fin_prevue",
+   "raison",
+   "criticite"
+  ],
+  "valeurs_vides": 304854,
+  "sommes": {},
+  "empreinte_contenu": "295a91ff9ad46920",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "penuries_fr_mensuel": {
+  "construite_le": "2026-10-22T19:12:05",
+  "lignes": 146475,
+  "colonnes": [
+   "atc5",
+   "atc4",
+   "mois",
+   "nb_signalements",
+   "nb_laboratoires_signalants",
+   "nb_penuries_affichees",
+   "nb_nouvelles_penuries_affichees",
+   "gravite_max_affichee"
+  ],
+  "valeurs_vides": 250596,
+  "sommes": {
+   "nb_signalements": 22177.0,
+   "nb_laboratoires_signalants": 17302.0,
+   "nb_penuries_affichees": 12113.0,
+   "nb_nouvelles_penuries_affichees": 1341.0
+  },
+  "empreinte_contenu": "0d6de3e16b35a254",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "produits": {
+  "construite_le": "2026-10-22T19:11:53",
+  "lignes": 15883,
+  "colonnes": [
+   "cis",
+   "denomination",
+   "forme",
+   "voies",
+   "statut_amm",
+   "procedure_amm",
+   "etat_commercialisation",
+   "date_amm",
+   "statut_bdm",
+   "numero_autorisation_europeenne",
+   "titulaires",
+   "surveillance_renforcee",
+   "atc5",
+   "source_atc",
+   "cle_substances",
+   "nb_substances"
+  ],
+  "valeurs_vides": 33204,
+  "sommes": {
+   "nb_substances": 20862.0
+  },
+  "empreinte_contenu": "553e8764aa46f3da",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "shortage_events": {
+  "construite_le": "2026-10-22T19:12:05",
+  "lignes": 16769,
+  "colonnes": [
+   "pays",
+   "id_episode",
+   "medicament",
+   "substance",
+   "atc5",
+   "atc4",
+   "debut",
+   "fin",
+   "en_cours",
+   "type_episode",
+   "gravite",
+   "criticite",
+   "raison",
+   "debut_connu",
+   "publication",
+   "censure_gauche",
+   "fin_connue_le"
+  ],
+  "valeurs_vides": 41328,
+  "sommes": {
+   "en_cours": 3213.0,
+   "debut_connu": 16580.0,
+   "censure_gauche": 3089.0
+  },
+  "empreinte_contenu": "09d424c0334b45ff",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ },
+ "ue_liste_critique": {
+  "construite_le": "2026-10-22T19:11:40",
+  "lignes": 299,
+  "colonnes": [
+   "atc5",
+   "substance",
+   "voie",
+   "date_inscription"
+  ],
+  "valeurs_vides": 0,
+  "sommes": {},
+  "empreinte_contenu": "8521d1f7e2d43597",
+  "commit": "a452f7b+modifs",
+  "empreinte_code": "1537d2e1bfc1a536",
+  "empreinte_brut": "68f6a33687fe09e4"
+ }
+}

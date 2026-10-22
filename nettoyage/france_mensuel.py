@@ -54,7 +54,8 @@ def construire():
 
     # Un épisode compte pour chaque mois entre son début et sa fin (ou la dernière photo s'il est en cours).
     fin = episodes["fin"].fillna(photos.max())
-    episodes = episodes.assign(mois_debut=mois_de(episodes["debut"]), gravite=episodes["gravite"].map(GRAVITE),
+    episodes = episodes.assign(mois_debut=mois_de(episodes["debut"]),
+                               gravite=episodes["gravite"].astype(object).map(GRAVITE),
                                mois=[pd.date_range(d, f, freq="MS") for d, f in zip(mois_de(episodes["debut"]), mois_de(fin))])
     en_cours = episodes.explode("mois").dropna(subset=["mois"]).astype({"mois": "datetime64[ns]"})
     par_page = (en_cours.groupby(["atc5", "mois"])
@@ -62,7 +63,8 @@ def construire():
     nouvelles = (episodes[~episodes["censure_gauche"]].groupby(["atc5", "mois_debut"]).size().rename("nb_nouvelles_penuries_affichees")
                  .reset_index().rename(columns={"mois_debut": "mois"}))
     noms_gravite = {rang: nom for nom, rang in GRAVITE.items()}
-    par_page["gravite_max_affichee"] = par_page.pop("gravite").map(noms_gravite)
+    par_page["gravite_max_affichee"] = (par_page.pop("gravite").map(noms_gravite)
+                                        .astype(pd.CategoricalDtype(list(GRAVITE), ordered=True)))
 
     substances = sorted(set(produits["atc5"].dropna()) | set(signalements["atc5"]) | set(episodes["atc5"]))
     table = pd.MultiIndex.from_product([substances, tous_les_mois], names=["atc5", "mois"]).to_frame(index=False)

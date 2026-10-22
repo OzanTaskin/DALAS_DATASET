@@ -17,6 +17,10 @@ Règles (vérifiées sur les données le 08/10/2026) :
 - Épisode déjà en cours à la première photo (avril 2021) : `censure_gauche` = vrai.
 - `premiere_photo` : première photo où l'épisode est visible (actif ou remis à disposition) :
   c'est la date à laquelle le public le sait.
+- `fin_connue_le` : photo où l'on voit que l'épisode est terminé (remise à disposition ou arrêt
+  affiché, ou première photo où la fiche a disparu). La table est complétée après coup, comme un
+  « accumulating snapshot » : à une date d, `fin`, `type_fin` et `duree_jours` ne sont connus que si
+  `fin_connue_le < d`. Une variable de prédiction ne doit pas les lire sans ce filtre.
 - Épisode encore actif à la dernière photo : `en_cours` = vrai, `fin` vide.
 """
 import pandas as pd
@@ -31,9 +35,12 @@ def episodes_d_une_fiche(obs, photos, rang):
     """obs : observations d'une fiche triées par date. Renvoie une liste d'épisodes (dict)."""
     episodes, courant = [], None
 
-    def fermer(fin, type_fin):
-        courant.update(fin=fin, type_fin=type_fin)
+    def fermer(fin, type_fin, fin_connue_le):
+        courant.update(fin=fin, type_fin=type_fin, fin_connue_le=fin_connue_le)
         episodes.append(courant)
+
+    def photo_apres(photo):
+        return photos[rang[photo] + 1]
 
     precedent_rang = None
     for o in obs.itertuples():
@@ -41,7 +48,7 @@ def episodes_d_une_fiche(obs, photos, rang):
         photo_precedente = photos[r - 1] if r > 0 else None
         # Absence de plus d'une photo : la fiche avait disparu, l'épisode en cours s'est terminé.
         if courant is not None and precedent_rang is not None and r - precedent_rang > 2:
-            fermer(courant["derniere_photo_active"], "disparition")
+            fermer(courant["derniere_photo_active"], "disparition", photo_apres(courant["derniere_photo_active"]))
             courant = None
 
         if o.statut in ACTIFS:
@@ -60,25 +67,26 @@ def episodes_d_une_fiche(obs, photos, rang):
         elif o.statut == "remise_a_disposition":
             fin = o.date_remise_a_disposition if pd.notna(o.date_remise_a_disposition) else o.date_mise_a_jour
             if courant is not None:
-                fermer(fin, "remise_a_disposition")
+                fermer(fin, "remise_a_disposition", o.date_photo)
                 courant = None
             elif not episodes or episodes[-1]["type_fin"] != "remise_a_disposition" or r - precedent_rang > 2:
                 # Pénurie apparue et résolue entre deux photos.
                 episodes.append({"debut": None, "debut_au_plus_tot": photo_precedente, "censure_gauche": r == 0,
                                  "premiere_photo": o.date_photo,
                                  "premiere_photo_active": None, "derniere_photo_active": None,
-                                 "gravite_max": None, "fin": fin, "type_fin": "remise_a_disposition"})
+                                 "gravite_max": None, "fin": fin, "type_fin": "remise_a_disposition",
+                                 "fin_connue_le": o.date_photo})
         elif o.statut == "arret_commercialisation" and courant is not None:
-            fermer(o.date_mise_a_jour, "arret_commercialisation")
+            fermer(o.date_mise_a_jour, "arret_commercialisation", o.date_photo)
             courant = None
         precedent_rang = r
 
     if courant is not None:
         if precedent_rang == len(photos) - 1:
-            courant.update(fin=None, type_fin="en_cours")
+            courant.update(fin=None, type_fin="en_cours", fin_connue_le=None)
             episodes.append(courant)
         else:
-            fermer(courant["derniere_photo_active"], "disparition")
+            fermer(courant["derniere_photo_active"], "disparition", photo_apres(courant["derniere_photo_active"]))
     return episodes
 
 
