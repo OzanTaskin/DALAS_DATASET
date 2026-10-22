@@ -73,4 +73,7 @@ def construire():
     consommation = (annees.groupby(["atc5", "annee"], as_index=False)
                     .agg(boites=("boites", "sum"), montant_rembourse=("montant_rembourse", "sum"),
                          nb_presentations=("cip13", "nunique")))
+    # Des montants en euros : arrondis au centime. Sans cela, le dernier chiffre d'une somme en
+    # virgule flottante dépend de l'ordre des additions, et deux exécutions identiques diffèrent.
+    consommation["montant_rembourse"] = consommation["montant_rembourse"].round(2)
     enregistrer(consommation, "consommation")

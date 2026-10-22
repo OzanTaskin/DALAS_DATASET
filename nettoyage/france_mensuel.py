@@ -81,6 +81,8 @@ def construire():
     table.insert(1, "atc4", table["atc5"].str[:5])
     table = table[["atc5", "atc4", "mois", "nb_signalements", "nb_laboratoires_signalants",
                    "nb_penuries_affichees", "nb_nouvelles_penuries_affichees", "gravite_max_affichee"]]
+    # Précision de date fixée explicitement : sinon elle dépend de la version de pandas.
+    table["mois"] = table["mois"].astype("datetime64[us]")
     enregistrer(table, "penuries_fr_mensuel")
     print(f"  {len(substances)} substances × {len(tous_les_mois)} mois"
           f" ; signalements {mois_signalements[0]:%m/%Y} → {mois_signalements[-1]:%m/%Y}"
