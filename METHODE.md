@@ -70,9 +70,42 @@ le dashboard agrègera par trimestre et par classe, et c'est là que l'erreur se
 
 ## 3. Ce que veut dire une date : le cœur du projet
 
-Le cours 1 tourne autour d'une idée : à la date d'observation *d*, une variable ne peut utiliser que
-ce qui était **connu** avant *d*. Le piège est qu'une table contient souvent des valeurs exactes,
-mais connues plus tard. Chez nous, un même épisode porte quatre dates différentes :
+### La règle de la date d'observation *d*
+
+Un modèle de prédiction s'utilise **à une date donnée** pour parler d'un futur encore inconnu : « au
+1er novembre, cette substance va-t-elle manquer dans les trois prochains mois ? ». Pour qu'il apprenne
+à répondre, chaque exemple d'entraînement doit recréer **exactement la situation de quelqu'un placé à
+cette date** (cours 1, diapos 1 à 3 et 11) :
+
+```
+                          d (date d'observation)
+                          │
+  ── ce qu'on voyait ─────┼──── ce qui s'est passé ensuite ──→ temps
+     avant d              │     après d
+     = variables (X)      │     = label (y)
+```
+
+Une ligne de notre table d'entraînement sera donc **(une substance, un mois *d*)**, *d* étant le 1er du
+mois. Prenons l'amoxicilline au 1er novembre 2022. Le **label** demande s'il y a eu au moins un
+signalement entre le 1er novembre 2022 et le 31 janvier 2023. Les **variables**, elles, ne doivent
+contenir que ce qu'une personne pouvait savoir le 31 octobre 2022 au soir.
+
+Si une variable contient, même indirectement, une information postérieure à *d*, le modèle s'entraîne
+avec la réponse sous les yeux. Il paraît excellent, puis échoue en situation réelle, parce que cette
+information n'existera pas au moment de prédire. Dans le TP MegaStore, une seule variable de ce type
+fait passer l'AUC de 0,86 à 1,00. Le danger tient à ce qu'**aucune erreur n'apparaît** : les tables
+sont propres, les clés uniques, les jointures correctes. Seul un raisonnement sur **la date à laquelle
+chaque colonne devient connue** permet de la détecter (diapo 48).
+
+Notre réponse est structurelle : **chaque information du dataset porte deux dates, celle de
+l'événement et celle où il devient connu**, et les variables ne lisent que la seconde. C'est pour cela
+que les tables contiennent `publication`, `fin_connue_le` et les intervalles `valid_from` /
+`valid_to` de la BDPM historisée. Sans ces colonnes, la règle serait impossible à respecter.
+
+### Un épisode, quatre dates
+
+Le piège est qu'une table contient souvent des valeurs exactes, mais connues plus tard. Chez nous, un
+même épisode porte quatre dates différentes :
 
 | Date | Sens | Utilisable pour une variable à *d* ? |
 |---|---|---|
@@ -80,6 +113,18 @@ mais connues plus tard. Chez nous, un même épisode porte quatre dates différe
 | `publication` | première photo où l'épisode apparaît | **oui** : c'est le moment où le public le sait |
 | `fin` | fin de la pénurie | seulement si `fin_connue_le < d` |
 | `fin_connue_le` | photo où l'on voit que l'épisode est terminé | c'est la date qui autorise la lecture de `fin` et de la durée |
+
+Deux exemples, toujours au 1er novembre 2022 :
+
+- une pénurie française commence le 15 octobre d'après la BDPM, mais n'apparaît sur la page de l'ANSM
+  que le 3 novembre. Au 31 octobre, personne ne la voyait. Lire `debut` donnerait au modèle « en
+  pénurie depuis le 15 octobre », une information venue du futur ;
+- une pénurie italienne qui doit commencer le 1er décembre est annoncée dès octobre. Au 31 octobre, on
+  la voyait déjà. Lire `debut` ferait ici **perdre** un signal réellement disponible, celui-là même que
+  la question 2 cherche à mesurer.
+
+Dans les deux cas, la bonne date est `publication`, celle où l'information devient connue, que
+l'erreur soit une fuite ou une perte.
 
 `publication` et `fin_connue_le` n'existaient pas au départ. Elles ont été ajoutées précisément parce
 qu'une table complétée après coup ne garde pas la trace de ses états intermédiaires (diapo 51) : sans
@@ -239,15 +284,23 @@ Le plan suit l'ordre imposé par le cours (diapos 53 à 63), adapté à notre ca
    précédente, criticité UE si inscrite avant *d*, cascade (autres substances de la même classe ATC4),
    signaux européens avec leur indicateur de couverture, mois et année.
 3. **Label** : au moins un signalement dans les trois mois qui suivent *d*. Les dates dont la fenêtre
-   dépasse 12/2025 (fin des signalements publiés) sont exclues : leur label serait incomplet, donc
-   faussement négatif.
+   dépasse 12/2025, fin des signalements publiés, sont exclues (diapos 59-60). Par exemple, pour
+   *d* = 1er novembre 2025, la fenêtre irait jusqu'au 31 janvier 2026. La substance paraîtrait « sans
+   pénurie » en janvier alors qu'on ne sait simplement pas : ce serait un faux négatif, et le modèle
+   apprendrait que les pénuries se raréfient en fin de période. Dernier *d* utilisable : octobre 2025.
 4. **Assemblage** par jointures à gauche sur la cohorte, chaque étape étant d'abord agrégée à une ligne
    par (substance, *d*). Puis vérification que le nombre de lignes est celui de la cohorte, qu'aucune
    valeur n'est vide sans raison, que le taux de positifs est plausible, et qu'aucune variable n'a lu un
    événement daté de *d* ou après.
-5. **Découpage temporel, avec un écart de trois mois** entre entraînement, validation et test, pour
-   qu'aucun signalement ne serve à la fois de label d'entraînement et de label de test (diapo 62) :
-   entraînement 04/2019 → 09/2023, validation 01/2024 → 09/2024, test 01/2025 → 10/2025.
+5. **Découpage temporel, avec un écart de trois mois** (diapo 62) : entraînement 04/2019 → 09/2023,
+   validation 01/2024 → 09/2024, test 01/2025 → 10/2025. Deux raisons :
+   - **temporel, pas aléatoire**, parce que le modèle servira à prédire l'avenir à partir du passé. Un
+     découpage aléatoire mettrait des mois de 2024 dans l'entraînement et des mois de 2022 dans le
+     test : le modèle serait évalué sur une situation plus facile que la réalité ;
+   - **un écart**, parce que le label regarde trois mois en avant. Le dernier exemple d'entraînement
+     (*d* = septembre 2023) a un label qui couvre jusqu'à décembre 2023. Si le test commençait en
+     octobre 2023, les mêmes signalements de fin 2023 serviraient de réponse aux deux : le modèle
+     serait évalué en partie sur ce qu'il a déjà vu.
 6. **Référence à battre** (« signalée récemment → signalée bientôt »), puis modèles **avec et sans** les
    variables de cascade et d'Europe : c'est ainsi que les questions 1 et 2 sont testées.
 7. **Table de prédiction** : le même code, avec une seule date (le mois courant) et sans l'étape du
