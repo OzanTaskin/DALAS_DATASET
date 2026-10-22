@@ -1,162 +1,98 @@
 # Les pénuries de médicaments en France : prévisibles, contagieuses, importées ?
 
-Projet de data science du cours **DALAS** (Sorbonne Université, 2026-2027).
-L'objectif du cours : choisir une question sur le monde réel, construire nous-mêmes un dataset
-pour y répondre, puis appliquer les méthodes vues en cours.
+Projet de data science du cours **DALAS** (Sorbonne Université, 2026-2027) — Ozan Taskin, Rahim Belkacemi.
+Choisir une question sur le monde réel, construire nous-mêmes un dataset pour y répondre, puis appliquer
+les méthodes vues en cours.
 
 | Document | Contenu |
 |---|---|
-| **README.md** (ce fichier) | Le projet, les questions, les directions possibles, comment lancer le code |
-| [DONNEES.md](DONNEES.md) | La méthode en niveaux (brut → nettoyé → final) et le rôle de **chaque** source brute |
-| [QUESTIONS.md](QUESTIONS.md) | Les questions de recherche, formulées précisément |
-| [FAISABILITE.md](FAISABILITE.md) | L'étude de faisabilité : sources testées, risques, protocole ML, lien avec le programme du cours |
-| [METHODE.md](METHODE.md) | **Pourquoi** le dataset est construit ainsi, justifié par les cours *Building a Dataset from a Warehouse* et *Data Storage* ; plan de la table d'entraînement |
-| [CHANGELOG_DATA.md](CHANGELOG_DATA.md) | Une ligne par changement des données : date, auteur, quoi, pourquoi |
-| [AUDIT.md](AUDIT.md) | Audit du 22/10/2026 au regard des cours (entrepôt → dataset, formats et stockage), avec son suivi |
+| **README.md** (ce fichier) | le projet en bref, comment lancer le code |
+| [rapport_tme4/rapport_tme4.pdf](rapport_tme4/rapport_tme4.pdf) | **le rapport TME4** (2 pages) : questions, collecte, description quantitative, prétraitement |
+| [EXPLICATIONS.md](EXPLICATIONS.md) | **l'explication détaillée** : chaque source, chaque table, chaque choix, et pourquoi, au regard des cours ; la suite du projet |
+| [CHANGELOG_DATA.md](CHANGELOG_DATA.md) | une ligne par changement des données : date, auteur, quoi, pourquoi |
+| `manifestes/` | l'état exact des tables à chaque construction de référence (lignes, sommes, empreintes) |
 
----
+## Les questions
 
-## 1. Le problème
+- **Question principale** : peut-on anticiper les pénuries en France ? Pour une substance (code ATC5) au
+  mois *t*, quelle est la probabilité d'au moins un signalement de rupture à l'ANSM entre *t*+1 et *t*+3 ?
+- **Q1, effet cascade** : une pénurie se propage-t-elle aux substituts (même classe ATC4) ?
+- **Q2, pénuries importées** : une pénurie en Italie ou en Allemagne annonce-t-elle une pénurie en France ?
 
-Les pénuries de médicaments ont fortement augmenté en Europe depuis 2021 (amoxicilline, paracétamol
-pédiatrique, Ozempic…). Les agences publient la liste des pénuries **en cours**, mais personne ne
-publie de prévision. On veut savoir si les données publiques permettent d'**anticiper** les pénuries
-et de comprendre **comment elles se propagent**.
+La France est au centre : c'est le seul pays dont on a l'univers complet des médicaments, y compris ceux
+qui ne sont jamais en pénurie. L'Italie et l'Allemagne servent de signaux. Détails dans
+[EXPLICATIONS.md](EXPLICATIONS.md), section 1.
 
-## 2. Les questions de recherche
-
-> Version préliminaire (05/10/2026), qui pourra évoluer pendant le semestre (l'énoncé l'autorise).
-
-### Question principale : prévisibilité
-
-**Peut-on anticiper les pénuries de médicaments en France, et quels facteurs rendent une substance vulnérable ?**
-
-Concrètement : pour une substance active (code ATC niveau 5) au mois *t*, quelle est la probabilité
-qu'une nouvelle pénurie soit déclarée en France dans les **3 mois suivants** ?
-
-Facteurs qu'on pense tester :
-- nombre de laboratoires et de génériques sur le marché (peu de fournisseurs = fragile ?) ;
-- forme (injectable ou orale) ;
-- volume consommé ;
-- criticité officielle (MITM, liste critique de l'UE) ;
-- classe thérapeutique, saison ;
-- pénuries passées.
-
-### Question 1 : contagion entre substituts (« effet cascade »)
-
-**Quand un médicament manque, ses substituts manquent-ils ensuite ?**
-Exemple : pénurie d'amoxicilline → report des prescriptions sur l'amoxicilline/acide clavulanique
-→ pénurie de celle-ci. On le mesure à l'intérieur d'une même classe thérapeutique (ATC niveau 4).
-
-### Question 2 : pénuries « importées » d'Europe
-
-**Une pénurie chez nos voisins (Italie, Allemagne) annonce-t-elle une pénurie en France ?**
-Si oui, les listes étrangères sont un signal d'alerte précoce.
-
-### Pourquoi la France est au centre
-
-Pour prédire, il faut aussi connaître les médicaments qui ne sont **jamais** en pénurie.
-Seule la France publie la liste complète des médicaments commercialisés (la BDPM). Les autres pays
-ne publient que leurs listes de pénuries : ils servent donc de **signaux**, pas de cibles.
-
-### Comment on teste Q1 et Q2
-
-On entraîne le modèle de prédiction avec et sans les variables « cascade » ou « Europe ».
-Si la prédiction s'améliore, le signal existe.
-
-## 3. Directions possibles pour la suite
-
-Le cœur du projet (question principale + Q1 + Q2 sur la France) reste fixe. Selon le temps et les
-résultats, on peut ajouter une de ces directions :
-
-| Direction | Idée | Ce qu'il faudrait | Cours concerné |
-|---|---|---|---|
-| **A. Extension européenne** | Prédire aussi en Espagne et en Italie ; tester la propagation dans les deux sens | La liste complète des médicaments de ces pays (API CIMA pour l'Espagne, open data AIFA pour l'Italie, à vérifier) | ML Protocol |
-| **B. Durée des pénuries** | Prédire non pas *si* mais *combien de temps* une pénurie va durer | Dates de début et de fin, déjà dans les données | ML Protocol |
-| **C. Profils de pénuries** | Distinguer des familles : pénuries courtes et ponctuelles, chroniques, saisonnières | Le même historique | Clustering (16/11) |
-| **D. Classes qui évoluent ensemble** | Quelles classes thérapeutiques entrent en pénurie en même temps ? | Matrice classe × mois | Réduction de dimension (23/11) |
-| **E. Causes déclarées** | Les raisons de pénurie (production, demande, qualité…) diffèrent-elles par classe ? | Le champ « raison » de l'Allemagne (BfArM) | EDA, interprétabilité |
-| **F. Biais de déclaration** | Quelle part de la hausse est réelle, et quelle part vient des nouvelles obligations de déclarer ? | Comparer pays et périodes | Interprétabilité et biais (30/11) |
-
-## 4. Avancement
+## Avancement
 
 | Étape | Statut |
 |---|---|
-| Questions de recherche et faisabilité | ✅ fait |
-| **Niveau 1 : collecte des sources brutes** | ✅ fait (≈ 280 fichiers, ≈ 480 Mo ; empreintes vérifiées) |
-| **Niveau 2 : tables nettoyées** | ✅ fait (22 tables, dont `shortage_events` : 16 769 épisodes FR/IT/DE, `ansm_signalements` : 22 501 signalements officiels 2019-2025, `penuries_fr_mensuel`, la BDPM historisée et la liste critique de l'UE ; 24 contrôles automatiques) |
-| Niveau 3 : datasets finaux (`panel_fr`) | ⏳ à faire : plan dans [DONNEES.md](DONNEES.md) et [FAISABILITE.md](FAISABILITE.md) |
-| TME4 : rapport de 2 pages | ✅ `rapport_tme4/` (chiffres du 05/10/2026, avant les corrections de la branche de collecte) |
+| Niveau 1 : collecte des sources brutes | ✅ 272 fichiers, environ 500 Mo, empreintes vérifiées |
+| Niveau 2 : tables nettoyées | ✅ 22 tables, dont `shortage_events` (16 769 épisodes FR/IT/DE) et `ansm_signalements` (22 501 signalements 2019-2025) ; 34 contrôles automatiques |
+| TME4 : rapport de 2 pages | ✅ `rapport_tme4/` |
+| Niveau 3 : table d'entraînement `panel_fr` | ⏳ plan dans [EXPLICATIONS.md](EXPLICATIONS.md), section 6 |
 | TME6 : dashboard | ⏳ |
 | TME9 : rapport final | ⏳ |
 
-## 5. Lancer le code
+## Lancer le code
 
-Les données ne sont **pas** sur GitHub : elles sont trop lourdes (483 Mo) et se régénèrent avec le
-script. Il faut Python 3.10 ou plus récent et environ 500 Mo d'espace disque.
+Les données ne sont **pas** sur GitHub (environ 500 Mo) : elles se régénèrent avec le code. Il faut
+Python 3.11 ou plus récent (pandas 3 l'exige). Testé avec Python 3.14 et pandas 3.0 et 3.1.
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m collecte                    # niveau 1 : tout, en parallèle (≈ 10 min)
-.venv/bin/python -m nettoyage                   # niveau 2 : tables nettoyées dans data/clean/ (≈ 30 s)
-.venv/bin/python -m collecte actuelles wayback  # seulement certaines étapes
-.venv/bin/python -m nettoyage controles         # seulement les contrôles des tables
-.venv/bin/python -m analyse.figures_tme4        # figures du rapport TME4
+.venv/bin/python -m collecte              # niveau 1 : télécharge tout dans data/raw/ (environ 10 min)
+.venv/bin/python -m nettoyage             # niveau 2 : tables dans data/clean/ (environ 30 s)
+.venv/bin/python -m analyse.figures_tme4  # figures du rapport
 ```
 
-- La collecte peut être relancée : les fichiers déjà présents ne sont pas retéléchargés.
-- Si un téléchargement échoue (archive Wayback refusée, serveur indisponible…), la collecte se termine
-  en erreur avec la liste des fichiers manquants : il suffit de la relancer.
-- Fin de la collecte et début du nettoyage : chaque fichier brut est comparé à son empreinte dans le
-  manifeste. Un fichier modifié ou abîmé arrête tout.
-- Fin du nettoyage : contrôles des tables (clés uniques, codes ATC5, intervalles des dimensions
-  historisées, totaux réconciliés). Chaque table est tracée dans `data/clean/manifeste.json` avec la
-  version du code (commit) et l'empreinte du brut : deux exécutions se comparent ainsi.
-- Les sources évoluent : relancer plus tard donnera une photo du jour plus récente. Les archives
-  passées, elles, ne changent pas.
+- Étapes isolées : `python -m collecte actuelles wayback`, `python -m nettoyage controles`.
+- La collecte peut être relancée : les fichiers déjà présents ne sont pas retéléchargés. Si un
+  téléchargement échoue, elle s'arrête avec la liste des fichiers manquants.
+- Fin de la collecte et début du nettoyage : chaque fichier brut est comparé à son empreinte dans
+  `data/raw/manifeste.csv`. Un fichier modifié ou abîmé arrête tout.
+- Fin du nettoyage : contrôles des tables, puis copie du manifeste dans `manifestes/` (à commiter).
+- Les sources évoluent : relancer plus tard donne une photo du jour plus récente, donc des chiffres
+  légèrement différents. Le manifeste dit si un écart vient du code ou des données.
+- Particularités : Open Medic refuse les téléchargements simultanés (années téléchargées une par une) ;
+  une partie des archives BDPM est tronquée par la Wayback Machine (gardées dans le brut, écartées au
+  nettoyage).
 
-### Organisation du code
+## Organisation
 
 ```
-collecte/
-├── __main__.py           point d'entrée : lance les étapes en parallèle, échoue si un fichier manque
-├── commun.py             session HTTP, téléchargement, manifeste (traçabilité)
+collecte/                 niveau 1
+├── __main__.py           lance les étapes en parallèle, puis vérifie les empreintes
+├── commun.py             session HTTP, téléchargement, manifeste
 ├── sources_actuelles.py  photo du jour : BDPM, ANSM, AIFA, BfArM, liste critique de l'UE
-├── ansm_signalements.py  signalements officiels de rupture, un classeur par année (2019-2025)
-├── open_medic.py         consommation française 2019-2025
-├── wayback.py            historique via les archives de la Wayback Machine
+├── ansm_signalements.py  signalements de rupture, un classeur par an (2019-2025)
+├── open_medic.py         consommation 2019-2025
+├── wayback.py            archives mensuelles de la Wayback Machine
 └── verification.py       empreintes de la couche brute conformes au manifeste
 
 nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ordre
 ├── commun.py             chemins, normalisation des textes, écriture + manifeste des tables
-├── bdpm.py               base des médicaments → bdpm_* (+ signalements archivés)
-├── bdpm_historique.py    archives BDPM → bdpm_*_historique (SCD type 2, jointure as-of)
-├── ue_liste_critique.py  liste critique de l'UE → ue_liste_critique
-├── open_medic.py         → atc (libellés), cip_atc, consommation
+├── bdpm.py               BDPM du jour → bdpm_*
+├── bdpm_historique.py    archives BDPM → bdpm_*_historique (versions datées)
+├── ue_liste_critique.py  liste critique de l'UE
+├── open_medic.py         → atc, cip_atc, consommation
 ├── produits.py           ATC5 de chaque médicament français
-├── ansm.py               page ANSM (59 photos) → ansm_observations
+├── ansm.py               page ANSM → ansm_observations
 ├── ansm_fiches.py        chaque fiche ANSM reliée à un médicament et un ATC5
-├── ansm_episodes.py      observations mensuelles → épisodes de pénurie (début, fin)
-├── ansm_signalements.py  classeurs annuels → ansm_signalements (avec ATC5)
+├── ansm_episodes.py      observations → épisodes de pénurie
+├── ansm_signalements.py  classeurs → ansm_signalements
 ├── europe.py             Italie, Allemagne → europe_observations, europe_episodes
-├── evenements.py         table centrale shortage_events (FR + IT + DE)
-├── france_mensuel.py     signalements + épisodes → penuries_fr_mensuel (substance × mois)
+├── evenements.py         table centrale shortage_events
+├── france_mensuel.py     → penuries_fr_mensuel (substance × mois)
 └── controles.py          contrôles des tables (dernière étape)
 
-analyse/
-└── figures_tme4.py       figures du rapport TME4
+analyse/figures_tme4.py   figures du rapport
+rapport_tme4/             rapport TME4 (LaTeX et PDF)
 ```
 
-Arborescence des données (cours *Data Storage*) : `data/raw/` (brut, en lecture seule),
-`data/clean/` (tables nettoyées), puis, avec le niveau 3, `data/final/` (datasets versionnés
-`panel_fr_v<n>_<date>.parquet`), `models/` (modèles joblib) et `outputs/` (prédictions et métriques).
+Données (non versionnées) : `data/raw/` (brut, lecture seule), `data/clean/` (tables Parquet), puis, avec
+le niveau 3, `data/final/`, `models/` et `outputs/`.
 
-Le détail des tables et des règles de construction est dans [DONNEES.md](DONNEES.md).
-
-### Particularités des sources (constatées le 05/10/2026)
-
-- **Open Medic** refuse les téléchargements simultanés et renvoie alors un message d'erreur au lieu
-  de l'archive : les années sont téléchargées une par une et chaque ZIP est contrôlé.
-- **Wayback Machine** : une partie des archives BDPM est tronquée à 1 Mio. Elles sont gardées dans le
-  brut et écartées au nettoyage (voir DONNEES.md, section 3).
+L'historique complet du travail (audit, notes de conception, étude de faisabilité) est sur la branche
+[`ozan`](https://github.com/OzanTaskin/DALAS_DATASET/tree/ozan).
