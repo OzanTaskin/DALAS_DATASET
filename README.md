@@ -9,7 +9,9 @@ pour y répondre, puis appliquer les méthodes vues en cours.
 | **README.md** (ce fichier) | Le projet, les questions, les directions possibles, comment lancer le code |
 | [DONNEES.md](DONNEES.md) | La méthode en niveaux (brut → nettoyé → final) et le rôle de **chaque** source brute |
 | [QUESTIONS.md](QUESTIONS.md) | Les questions de recherche, formulées précisément |
-| [FAISABILITE.md](FAISABILITE.md) | L'étude de faisabilité : sources testées, risques, lien avec le programme du cours |
+| [FAISABILITE.md](FAISABILITE.md) | L'étude de faisabilité : sources testées, risques, protocole ML, lien avec le programme du cours |
+| [CHANGELOG_DATA.md](CHANGELOG_DATA.md) | Une ligne par changement des données : date, auteur, quoi, pourquoi |
+| [AUDIT.md](AUDIT.md) | Audit du 22/10/2026 au regard des cours (entrepôt → dataset, formats et stockage), avec son suivi |
 
 ---
 
@@ -80,10 +82,10 @@ résultats, on peut ajouter une de ces directions :
 | Étape | Statut |
 |---|---|
 | Questions de recherche et faisabilité | ✅ fait |
-| **Niveau 1 : collecte des sources brutes** | ✅ fait (271 fichiers, 476 Mo au 15/10/2026 ; la collecte échoue si un téléchargement manque) |
-| **Niveau 2 : tables nettoyées** | ✅ fait (18 tables, dont `shortage_events` : 16 842 épisodes FR/IT/DE, `ansm_signalements` : 22 501 signalements officiels 2019-2025, et leur jointure `penuries_fr_mensuel`) |
-| Niveau 3 : datasets finaux (`panel_fr`) | ⏳ à faire, après le cours ML Protocol |
-| TME4 : rapport de 2 pages | ⏳ |
+| **Niveau 1 : collecte des sources brutes** | ✅ fait (≈ 280 fichiers, ≈ 480 Mo ; empreintes vérifiées) |
+| **Niveau 2 : tables nettoyées** | ✅ fait (22 tables, dont `shortage_events` : 16 769 épisodes FR/IT/DE, `ansm_signalements` : 22 501 signalements officiels 2019-2025, `penuries_fr_mensuel`, la BDPM historisée et la liste critique de l'UE ; 24 contrôles automatiques) |
+| Niveau 3 : datasets finaux (`panel_fr`) | ⏳ à faire : plan dans [DONNEES.md](DONNEES.md) et [FAISABILITE.md](FAISABILITE.md) |
+| TME4 : rapport de 2 pages | ✅ `rapport_tme4/` (chiffres du 05/10/2026, avant les corrections de la branche de collecte) |
 | TME6 : dashboard | ⏳ |
 | TME9 : rapport final | ⏳ |
 
@@ -98,11 +100,18 @@ python3 -m venv .venv
 .venv/bin/python -m collecte                    # niveau 1 : tout, en parallèle (≈ 10 min)
 .venv/bin/python -m nettoyage                   # niveau 2 : tables nettoyées dans data/clean/ (≈ 30 s)
 .venv/bin/python -m collecte actuelles wayback  # seulement certaines étapes
+.venv/bin/python -m nettoyage controles         # seulement les contrôles des tables
+.venv/bin/python -m analyse.figures_tme4        # figures du rapport TME4
 ```
 
 - La collecte peut être relancée : les fichiers déjà présents ne sont pas retéléchargés.
 - Si un téléchargement échoue (archive Wayback refusée, serveur indisponible…), la collecte se termine
   en erreur avec la liste des fichiers manquants : il suffit de la relancer.
+- Fin de la collecte et début du nettoyage : chaque fichier brut est comparé à son empreinte dans le
+  manifeste. Un fichier modifié ou abîmé arrête tout.
+- Fin du nettoyage : contrôles des tables (clés uniques, codes ATC5, intervalles des dimensions
+  historisées, totaux réconciliés). Chaque table est tracée dans `data/clean/manifeste.json` avec la
+  version du code (commit) et l'empreinte du brut : deux exécutions se comparent ainsi.
 - Les sources évoluent : relancer plus tard donnera une photo du jour plus récente. Les archives
   passées, elles, ne changent pas.
 
@@ -112,13 +121,17 @@ python3 -m venv .venv
 collecte/
 ├── __main__.py           point d'entrée : lance les étapes en parallèle, échoue si un fichier manque
 ├── commun.py             session HTTP, téléchargement, manifeste (traçabilité)
-├── sources_actuelles.py  photo du jour : BDPM, ANSM, AIFA, BfArM
+├── sources_actuelles.py  photo du jour : BDPM, ANSM, AIFA, BfArM, liste critique de l'UE
 ├── ansm_signalements.py  signalements officiels de rupture, un classeur par année (2019-2025)
 ├── open_medic.py         consommation française 2019-2025
-└── wayback.py            historique via les archives de la Wayback Machine
+├── wayback.py            historique via les archives de la Wayback Machine
+└── verification.py       empreintes de la couche brute conformes au manifeste
 
 nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ordre
+├── commun.py             chemins, normalisation des textes, écriture + manifeste des tables
 ├── bdpm.py               base des médicaments → bdpm_* (+ signalements archivés)
+├── bdpm_historique.py    archives BDPM → bdpm_*_historique (SCD type 2, jointure as-of)
+├── ue_liste_critique.py  liste critique de l'UE → ue_liste_critique
 ├── open_medic.py         → atc (libellés), cip_atc, consommation
 ├── produits.py           ATC5 de chaque médicament français
 ├── ansm.py               page ANSM (59 photos) → ansm_observations
@@ -127,8 +140,16 @@ nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ord
 ├── ansm_signalements.py  classeurs annuels → ansm_signalements (avec ATC5)
 ├── europe.py             Italie, Allemagne → europe_observations, europe_episodes
 ├── evenements.py         table centrale shortage_events (FR + IT + DE)
-└── france_mensuel.py     signalements + épisodes → penuries_fr_mensuel (substance × mois)
+├── france_mensuel.py     signalements + épisodes → penuries_fr_mensuel (substance × mois)
+└── controles.py          contrôles des tables (dernière étape)
+
+analyse/
+└── figures_tme4.py       figures du rapport TME4
 ```
+
+Arborescence des données (cours *Data Storage*) : `data/raw/` (brut, en lecture seule),
+`data/clean/` (tables nettoyées), puis, avec le niveau 3, `data/final/` (datasets versionnés
+`panel_fr_v<n>_<date>.parquet`), `models/` (modèles joblib) et `outputs/` (prédictions et métriques).
 
 Le détail des tables et des règles de construction est dans [DONNEES.md](DONNEES.md).
 
@@ -136,3 +157,5 @@ Le détail des tables et des règles de construction est dans [DONNEES.md](DONNE
 
 - **Open Medic** refuse les téléchargements simultanés et renvoie alors un message d'erreur au lieu
   de l'archive : les années sont téléchargées une par une et chaque ZIP est contrôlé.
+- **Wayback Machine** : une partie des archives BDPM est tronquée à 1 Mio. Elles sont gardées dans le
+  brut et écartées au nettoyage (voir DONNEES.md, section 3).

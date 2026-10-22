@@ -23,8 +23,8 @@ téléchargés                  entre elles                    l'analyse et le M
 
 | Niveau | Règle | Pourquoi |
 |---|---|---|
-| **1. Brut** | On ne modifie **rien** : les octets reçus sont écrits tels quels. Chaque fichier est tracé dans `data/raw/manifeste.csv` (URL, date, taille, empreinte SHA-256). | **Preuve et reproductibilité.** Si on se trompe au nettoyage, on recommence à partir du brut sans retélécharger. Les sites changent et les pages disparaissent ; notre copie, non. L'empreinte prouve qu'un fichier n'a pas été modifié. |
-| **2. Nettoyé** | Une table par type d'objet (pénuries, médicaments, substances…), des colonnes en format uniforme (dates, codes ATC, noms de pays), sans doublons. | **Séparer les problèmes.** Chaque source a son format (HTML ANSM, CSV italien en latin-1, JSON espagnol…). On règle ces différences une seule fois, ici. Ensuite, toutes les sources « parlent la même langue ». |
+| **1. Brut** | On ne modifie **rien** : les octets reçus sont écrits tels quels. Chaque fichier est tracé dans `data/raw/manifeste.csv` (URL, date, taille, empreinte SHA-256), et les empreintes sont revérifiées avant chaque nettoyage. | **Preuve et reproductibilité.** Si on se trompe au nettoyage, on recommence à partir du brut sans retélécharger. Les sites changent et les pages disparaissent ; notre copie, non. L'empreinte prouve qu'un fichier n'a pas été modifié. |
+| **2. Nettoyé** | Une table par type d'objet (pénuries, médicaments, substances…), des colonnes en format uniforme (dates, codes ATC, noms de pays), sans doublons. Chaque table est tracée dans `data/clean/manifeste.json` (lignes, colonnes, version du code, empreinte du brut) et contrôlée (`nettoyage/controles.py`). | **Séparer les problèmes.** Chaque source a son format (HTML ANSM, CSV italien en latin-1, classeurs Excel…). On règle ces différences une seule fois, ici. Ensuite, toutes les sources « parlent la même langue ». |
 | **3. Final** | Des tableaux construits pour répondre à **une** question, sans fuite d'information (une variable au mois *t* n'utilise que ce qu'on savait au mois *t*). | **Répondre aux questions.** Le format dépend de la méthode : un panel mensuel pour le ML, un résumé agrégé pour le dashboard. |
 
 C'est la démarche du cours *Building a Dataset from a Warehouse*. Le niveau 2 forme un
@@ -33,23 +33,38 @@ décrivent (médicaments, substances, consommation…).
 
 ### Niveau 2 : les tables nettoyées (fait, `python -m nettoyage`)
 
-Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une ligne avec pandas ou DuckDB.
+Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une ligne avec pandas.
+22 tables ; nombres de lignes de l'exécution du 22/10/2026 (ils changent avec la photo du jour :
+la référence est `data/clean/manifeste.json`).
 
 **La table centrale**
 
 | Table | Une ligne = | Lignes | Contenu |
 |---|---|---:|---|
-| **`shortage_events`** | un épisode de pénurie dans un pays | 16 842 | pays, médicament, substance, ATC5, ATC4, début, fin, publication, en cours, type (pénurie / arrêt définitif), gravité (FR), criticité (DE), raison (IT, DE) |
+| **`shortage_events`** | un épisode de pénurie dans un pays | 16 769 | pays, médicament, substance, ATC5, ATC4, début, fin, **publication**, en cours, type (pénurie / arrêt définitif), gravité (FR), criticité (DE), raison (IT, DE), `debut_connu`, `censure_gauche` |
 
 **Les tables qui la décrivent**
 
 | Table | Une ligne = | Lignes | Sert à |
 |---|---|---:|---|
-| `produits` | un médicament français (CIS) avec son ATC5 | 15 883 | univers de prédiction, structure du marché |
+| `produits` | un médicament français (CIS) avec son ATC5 | 15 883 | univers de prédiction |
 | `atc` | un code ATC5 avec ses niveaux 1 à 4 et leurs libellés | 1 333 | classes thérapeutiques (substituts pour Q1) |
 | `consommation` | un ATC5 × une année : boîtes et montants remboursés | 8 045 | demande |
-| `bdpm_presentations`, `bdpm_compositions`, `bdpm_generiques`, `bdpm_mitm` | boîte, substance, groupe générique, médicament critique | 7 700 à 32 400 | variables du marché, criticité |
+| `bdpm_presentations`, `bdpm_compositions`, `bdpm_generiques`, `bdpm_mitm`, `bdpm_specialites` | photo du jour : boîte, substance, groupe générique, médicament critique, médicament | 7 700 à 32 400 | rapprochements ATC, criticité |
 | `cip_atc` | une boîte (CIP13) avec son ATC5 | 15 963 | lien Open Medic ↔ BDPM |
+| `ue_liste_critique` | une substance de la liste critique de l'UE, avec sa **date d'inscription** | 299 | criticité européenne, connue à la bonne date |
+
+**Les dimensions historisées** (*SCD type 2*, pour la jointure *as-of*)
+
+| Table | Une ligne = | Lignes | Sert à |
+|---|---|---:|---|
+| `bdpm_specialites_historique` | une version d'un médicament (CIS), valable sur `[valid_from, valid_to)` : nom, forme, voies, titulaires, commercialisé | 42 206 | marché **tel qu'il était** à chaque date |
+| `bdpm_presentations_historique` | une version d'une boîte (CIP13) : son CIS, commercialisée ou non | 38 776 | idem |
+| `bdpm_generiques_historique` | une version de l'appartenance d'un CIS à un groupe générique | 15 810 | nombre de génériques à chaque date |
+
+L'état du marché au mois *d* s'obtient par `valid_from <= d < valid_to` (ou `valid_to` vide).
+Le contrôle `controles.py` vérifie qu'aucun intervalle ne se chevauche, sinon cette jointure
+dupliquerait des lignes sans prévenir.
 
 **Les tables intermédiaires** (gardées pour vérifier chaque étape)
 
@@ -60,43 +75,68 @@ Format **Parquet** : colonnes typées (dates, nombres), compressé, lu en une li
 | `ansm_episodes` | un épisode de pénurie en France, avec ses règles de début et de fin | 1 599 |
 | `ansm_signalements` | un signalement officiel d'un laboratoire à l'ANSM (2019-2025), avec ATC5 | 22 501 |
 | `bdpm_dispo_observations` | un signalement BDPM vu dans une photo | 10 807 |
-| `europe_observations`, `europe_episodes` | idem pour l'Italie et l'Allemagne | 171 533 / 15 239 |
+| `europe_observations`, `europe_episodes` | idem pour l'Italie et l'Allemagne | 171 552 / 15 170 |
 
 **La jointure des deux vues françaises**
 
 | Table | Une ligne = | Lignes | Contenu |
 |---|---|---:|---|
-| `penuries_fr_mensuel` | une substance (ATC5) × un mois | 150 494 | nombre de signalements officiels et de laboratoires qui signalent ; nombre de pénuries affichées sur la page ANSM, nouvelles pénuries, gravité maximale |
+| `penuries_fr_mensuel` | une substance (ATC5) × un mois | 146 475 | nombre de signalements officiels et de laboratoires qui signalent ; nombre de pénuries affichées sur la page ANSM, nouvelles pénuries, gravité maximale |
 
 Les deux sources viennent de l'ANSM et se recouvrent (453 des 462 substances affichées sur la page ont aussi
 un signalement) : on ne les empile pas, on les met côte à côte. Une valeur vide veut dire « mois non
-couvert par la source » (signalements : 2019 → 2025 ; page : 04/2021 → aujourd'hui), pas zéro.
+couvert par la source » (signalements : 01/2019 → 12/2025 ; page : 04/2021 → dernier mois complet), pas zéro.
 Pour prédire, les colonnes de la page au mois *t* ne doivent expliquer que des signalements **postérieurs** à *t*.
+
+**Attention en agrégeant :** `nb_signalements` et `nb_nouvelles_penuries_affichees` sont des **flux**
+(on les additionne sur plusieurs mois) ; `nb_penuries_affichees` est un **stock** (pénuries en cours) :
+on ne l'additionne pas sur les mois, on prend la valeur d'un mois ou la moyenne de la période.
+Et un signalement n'est pas une pénurie : un même médicament peut être signalé plusieurs fois le
+même mois (1 492 cas). La cible sera donc binaire.
 
 ### Les choix de construction importants
 
 | Problème | Choix | Conséquence |
 |---|---|---|
 | L'ANSM et la BDPM ne donnent pas l'ATC | ATC obtenu par Open Medic, puis la liste MITM, puis un médicament aux **mêmes substances** | 81 % des médicaments commercialisés ont un ATC (le reste : surtout de l'homéopathie) |
-| Les fiches ANSM n'ont pas de code médicament | Rapprochement en 4 voies : lien exact donné par la BDPM (808 fiches), nom identique (246), substance (126), marque (203) | **94 % des fiches** ont un ATC ; la voie utilisée est gardée (`methode_rapprochement`) |
+| La liste MITM donne parfois un code de classe (niveau 4, 5 caractères) au lieu d'une substance | Seuls les codes à 7 caractères sont gardés ; le contrôle `ATC5 valides` le vérifie dans toutes les tables | plus de fausses « substances » (25 auparavant) |
+| Les fiches ANSM n'ont pas de code médicament | Rapprochement en 4 voies : lien exact donné par la BDPM (800 fiches), nom identique (245), substance (126), marque (195) | **93 % des fiches** ont un ATC ; la voie utilisée est gardée (`methode_rapprochement`) |
 | La date affichée par l'ANSM est une date de **mise à jour** | Début = date de mise à jour à la première apparition (elle tombe entre deux photos dans 98,5 % des cas), remplacée par la date exacte de la BDPM quand elle existe (556 épisodes) | début fiable au mois près |
 | Une fiche peut repasser en pénurie | Chaque retour (après une remise à disposition) est un **nouvel épisode** | 1 599 épisodes pour 1 432 fiches |
 | Pénurie apparue et résolue entre deux photos | Gardée, avec un début seulement borné (`debut_connu` = faux) | 189 épisodes |
-| Épisode déjà en cours à la première archive (avril 2021) | Signalé (`censure_gauche`) | à exclure de l'estimation des durées |
-| Les signalements n'ont pas d'ATC, et pas de code avant 2022 | CIP13 → BDPM (16 200), puis nom (4 121), substance (1 653), marque (237), Open Medic (10) | **98,8 % des signalements** ont un ATC5 ; la voie utilisée est gardée |
+| Épisode déjà en cours à la première archive du pays | Signalé (`censure_gauche`, dans les trois pays) | exclu des durées et des comptes de nouvelles pénuries (FR 191, IT 1 224, DE 434) |
+| Les signalements n'ont pas d'ATC, et pas de code avant 2022 | CIP13 → BDPM (16 162), puis nom (4 100), substance (1 651), marque (254), Open Medic (10) | **98,6 % des signalements** ont un ATC5 ; la voie utilisée est gardée |
 | Italie : l'AIFA révise la date de début d'une pénurie déjà listée (2 857 médicaments, presque toujours vers plus tard) | Un épisode = une présence continue du médicament sur la liste, pas « médicament + date de début » (qui créait un faux épisode à chaque révision) ; la dernière date déclarée sert de début, la première est gardée | 10 074 pénuries italiennes au lieu de 11 046 ; plus de faux épisodes |
 | Allemagne : la déclaration initiale vaut « N/A » pour environ un quart des lignes | « N/A » traité comme vide : la ligne est sa propre déclaration initiale (auparavant, toutes ces lignes formaient un seul faux épisode) | 2 020 pénuries allemandes au lieu de 1 323 |
-| Pénuries annoncées à l'avance (49 % en Italie) | Colonne `publication` = première photo où l'épisode apparaît : c'est la date du signal, à utiliser pour prédire (Q2), pas le début déclaré | pas de fuite d'information |
-| Fin connue seulement entre deux photos | `fin` = dernière photo où l'épisode est publié, `fin_au_plus_tard` = photo suivante | 717 épisodes italiens ont un début après `fin` : pénurie plus courte que l'intervalle entre deux photos, ou annonce retirée |
+| Pénuries annoncées à l'avance (49 % en Italie) ; en France, date de début exacte connue après coup (BDPM) | Colonne `publication` = première photo où l'épisode apparaît (pour la France : actif ou déjà remis à disposition) : c'est la date du signal, à utiliser pour **toutes** les variables, pas le début déclaré | pas de fuite d'information (en France, la publication suit le début de 20 jours en médiane) |
+| La BDPM du jour ne décrit pas le marché passé | Dimensions historisées à partir des archives (voir plus haut) ; les archives tronquées à 1 Mio par la Wayback Machine sont écartées | marché connu à chaque date, avec des trous entre 06/2020 et 05/2024 (dernière photo complète antérieure utilisée) |
+| Fin connue seulement entre deux photos | `fin` = dernière photo où l'épisode est publié, `fin_au_plus_tard` = photo suivante | 716 épisodes italiens ont un début après `fin` : pénurie plus courte que l'intervalle entre deux photos, ou annonce retirée |
 | Italie : pas de colonne ATC avant fin 2024 | ATC repris du même code AIC, puis de la même substance | 94 % des épisodes italiens ont un ATC |
-| Italie : « arrêt définitif de commercialisation » | Ce n'est pas une pénurie : `type_episode` = `arret_definitif` | 3 427 épisodes exclus de la cible |
+| Italie : « arrêt définitif de commercialisation » | Ce n'est pas une pénurie : `type_episode` = `arret_definitif` | 3 135 épisodes exclus de la cible |
 
 ### Niveau 3 : 2 datasets finaux (à faire)
 
 | Dataset | Une ligne = | Sert à |
 |---|---|---|
-| `panel_fr` | une substance × un mois en France (~1 500 × 66 mois ≈ 100 000 lignes) | Question principale, Q1 (cascade), Q2 (signaux européens en colonnes) |
+| `panel_fr` | une substance × un mois en France (~1 500 × 80 mois ≈ 100 000 lignes) | Question principale, Q1 (cascade), Q2 (signaux européens en colonnes) |
 | `dashboard_summary` | une classe ATC × un pays × un mois | Le dashboard du TME6 (léger et rapide) |
+
+Construction de `panel_fr`, dans l'ordre imposé par le cours *Building a Dataset from a Warehouse* :
+
+1. **Cohorte** (fixe le grain) : une substance ATC5 × un mois *d*, pour les substances qui ont au moins
+   un médicament commercialisé à *d* d'après `bdpm_*_historique` (jointure *as-of*).
+2. **Variables** : uniquement des événements **publiés avant *d*** (`publication < d`,
+   `date_signalement < d`, BDPM valable à *d*, consommation de l'année précédente, liste critique UE si
+   `date_inscription < d`).
+3. **Label** : au moins un signalement ANSM dans `[d, d + 3 mois)`, où *d* est le 1er jour du mois
+   *t* + 1 : les variables voient tout le mois *t*, le label couvre les mois *t* + 1 à *t* + 3 (la
+   formulation de QUESTIONS.md). Les mois dont la fenêtre dépasse 12/2025 (fin des signalements
+   publiés) sont exclus.
+4. **Assemblage** par jointures à gauche sur la cohorte, puis contrôles : nombre de lignes = cohorte,
+   pas de NULL imprévu, taux de positifs plausible, aucune date d'événement `>= d` dans les variables.
+5. **Manifeste** écrit à côté du dataset ; fichier versionné `data/final/panel_fr_v1_<date>.parquet`.
+
+Le détail des choix (cohorte MITM, découpage temporel) est dans [FAISABILITE.md](FAISABILITE.md), section 4.
 
 ---
 
@@ -169,9 +209,12 @@ générique ou non, et **nombre de boîtes remboursées**, détaillé par âge, 
 |---|---|---|---|
 | `aifa/actuel/` | AIFA (agence italienne) | CSV d'environ 2 500 pénuries, avec code ATC, dates, raison et équivalents | Signal Italie ; l'ATC est fourni directement |
 | `bfarm/actuel/` | BfArM (agence allemande) | CSV de 963 déclarations, avec ATC, dates et **raison de la pénurie** | Signal Allemagne ; la raison ouvre la direction E |
-**Sources abandonnées (15/10/2026) :** l'Espagne (API CIMA de l'AEMPS) et l'EMA étaient collectées
-mais jamais utilisées. L'API espagnole ne donne ni historique ni code ATC, et les fichiers de l'EMA
-(85 pénuries suivies au niveau européen) n'apportaient rien aux questions. Voir FAISABILITE.md.
+| `ema/actuel/` | EMA, HMA et Commission européenne | `union_list_critical_medicines.xlsx` : 299 substances critiques pour l'UE, avec ATC5 et **date d'inscription** (12/2023 → 2025) | Criticité européenne, utilisable sans fuite grâce à la date |
+
+**Sources abandonnées (15/10/2026) :** l'Espagne (API CIMA de l'AEMPS) et les autres fichiers de l'EMA
+étaient collectés mais jamais utilisés. L'API espagnole ne donne ni historique ni code ATC, et les
+85 pénuries suivies par l'EMA n'apportaient rien aux questions. La liste critique de l'UE a été
+gardée (22/10/2026) : c'est une variable prévue dans les questions. Voir FAISABILITE.md.
 
 ### 🕰️ Historique : archives de la Wayback Machine (`wayback/`)
 
@@ -184,14 +227,20 @@ le jour de la collecte.
 | `aifa_carenti/` | 47 | 10/2021 → 09/2026 | Historique Italie |
 | `bfarm_lieferengpaesse/` | 12 | 07/2024 → 09/2026 | Historique Allemagne (plus court) |
 | `bdpm_dispo/` | 11 | 12/2023 → 03/2026 | Recoupement avec l'ANSM |
-| `bdpm_cis/` | 41 | 02/2015 → 03/2026 | Médicaments commercialisés **à chaque date** |
-| `bdpm_cip/` | 39 | 02/2015 → 03/2026 | Boîtes commercialisées à chaque date |
-| `bdpm_gener/` | 41 | 02/2015 → 03/2026 | Génériques à chaque date |
+| `bdpm_cis/` | 41 (24 complètes) | 02/2015 → 03/2026 | Médicaments commercialisés **à chaque date** |
+| `bdpm_cip/` | 39 (22 complètes) | 02/2015 → 03/2026 | Boîtes commercialisées à chaque date |
+| `bdpm_gener/` | 41 (25 complètes) | 02/2015 → 03/2026 | Génériques à chaque date |
 
 **Pourquoi les anciennes versions de la BDPM ?** Pour éviter une **fuite d'information**.
 Si on décrit le marché de 2022 avec la BDPM de 2026, on utilise des informations qu'on ne
 connaissait pas en 2022. Par exemple, un générique retiré du marché *à cause* d'une pénurie fausserait
 le modèle. Avec les archives, chaque mois est décrit avec ce qu'on savait à ce moment-là.
+
+**Archives tronquées (constaté le 22/10/2026).** La Wayback Machine a coupé à exactement 1 Mio
+(1 048 576 octets) une partie des archives BDPM, surtout entre 2019 et 2025 : le fichier s'arrête au
+milieu d'une ligne, avec environ 5 300 médicaments au lieu de 14 000. Ces fichiers sont gardés dans le
+brut (on n'y touche pas) mais écartés au nettoyage. Photos complètes des médicaments : 2015 → 06/2020,
+09/2022, puis 05/2024 → 2026. Les autres archives (ANSM, AIFA, BfArM) ne sont pas touchées.
 
 ---
 
@@ -208,7 +257,12 @@ le modèle. Avec les archives, chaque mois est décrit avec ce qu'on savait à c
 - **Pénuries très courtes invisibles.** Avec une archive par mois, une pénurie qui commence et se
   termine entre deux archives peut ne jamais apparaître. L'historique sous-estime donc les pénuries
   courtes.
-- **Le site de l'ANSM a pu changer de mise en page entre 2021 et 2026.** Le lecteur HTML du niveau 2
-  devra gérer plusieurs versions de la page.
-- **Sources avec la seule photo du jour :** compositions BDPM et MITM n'ont pas encore
-  d'historique. On vérifiera si des archives existent.
+- **Cible limitée aux MITM.** Les signalements officiels ne concernent que les médicaments d'intérêt
+  thérapeutique majeur (seuls soumis à déclaration) : 12,1 % de mois positifs chez les substances qui en
+  ont, 1,2 % chez les autres.
+- **Rupture de série.** Les signalements doublent entre 2021 (2 167) et 2023 (4 925) : crise réelle des
+  antibiotiques, mais aussi renforcement des déclarations. Le modèle doit voir l'année.
+- **Historique de la BDPM troué** entre 06/2020 et 05/2024 (archives tronquées) : le marché d'un mois
+  de cette période est décrit par la dernière photo complète antérieure, parfois vieille de deux ans.
+- **Sources avec la seule photo du jour :** compositions BDPM et MITM n'ont pas d'historique. La
+  liste MITM de 2026 décrit donc aussi le passé : à écrire comme limite.

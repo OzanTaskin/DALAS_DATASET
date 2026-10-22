@@ -16,6 +16,7 @@ On les utilise donc comme **signaux extérieurs**, sur le même ensemble de subs
 **Peut-on anticiper les pénuries de médicaments en France, et quels facteurs rendent une substance vulnérable ?**
 
 - Formulation opérationnelle : pour une substance active (ATC5) au mois *t*, quelle est la probabilité qu'une nouvelle pénurie (rupture ou tension) soit déclarée en France entre *t+1* et *t+3* ?
+- Mesure de la déclaration : au moins un **signalement officiel** à l'ANSM (rupture ou risque de rupture) sur ces trois mois. Les signalements ne concernent que les médicaments d'intérêt thérapeutique majeur (MITM) : la question porte donc, en pratique, sur les substances qui ont au moins un MITM. Vérification de robustesse : même cible construite à partir de la page publique de l'ANSM (depuis 04/2021).
 - Facteurs candidats : nombre de laboratoires et de génériques, forme (injectable ou orale), volume consommé, criticité (MITM, liste critique UE), classe thérapeutique, saison, pénuries passées.
 
 ## Question 1 — contagion entre substituts (« effet cascade »)
