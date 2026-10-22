@@ -26,6 +26,9 @@ SOURCES = [
     # Allemagne — déclarations de pénurie (BfArM)
     ("bfarm", "https://anwendungen.pharmnet-bund.de/lieferengpassmeldungen/public/csv",
      "lieferengpassmeldungen.csv"),
+    # Union européenne — liste des médicaments critiques (ATC5 et date d'inscription de chaque substance)
+    ("ema", "https://www.ema.europa.eu/en/documents/other/union-list-critical-medicines-en.xlsx",
+     "union_list_critical_medicines.xlsx"),
 ]
 
 

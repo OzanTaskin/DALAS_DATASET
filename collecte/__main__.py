@@ -6,11 +6,12 @@ Usage :
 
 Chaque étape renvoie la liste de ses téléchargements en échec. S'il y en a, la collecte se
 termine en erreur : relancer la commande, les fichiers déjà présents ne sont pas retéléchargés.
+Sinon, on vérifie que chaque fichier brut correspond à son empreinte dans le manifeste.
 """
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 
-from . import ansm_signalements, open_medic, sources_actuelles, wayback
+from . import ansm_signalements, open_medic, sources_actuelles, verification, wayback
 from .commun import creer_session
 
 COLLECTES = {
@@ -38,6 +39,7 @@ def main():
 
     if echecs:
         raise SystemExit(f"{len(echecs)} téléchargement(s) en échec : {echecs[:10]}. Relancer la collecte.")
+    verification.verifier()
     print("Collecte complète.")
 
 
