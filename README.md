@@ -10,6 +10,7 @@ pour y répondre, puis appliquer les méthodes vues en cours.
 | [DONNEES.md](DONNEES.md) | La méthode en niveaux (brut → nettoyé → final) et le rôle de **chaque** source brute |
 | [QUESTIONS.md](QUESTIONS.md) | Les questions de recherche, formulées précisément |
 | [FAISABILITE.md](FAISABILITE.md) | L'étude de faisabilité : sources testées, risques, protocole ML, lien avec le programme du cours |
+| [METHODE.md](METHODE.md) | **Pourquoi** le dataset est construit ainsi, justifié par les cours *Building a Dataset from a Warehouse* et *Data Storage* ; plan de la table d'entraînement |
 | [CHANGELOG_DATA.md](CHANGELOG_DATA.md) | Une ligne par changement des données : date, auteur, quoi, pourquoi |
 | [AUDIT.md](AUDIT.md) | Audit du 22/10/2026 au regard des cours (entrepôt → dataset, formats et stockage), avec son suivi |
 

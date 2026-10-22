@@ -125,9 +125,11 @@ Construction de `panel_fr`, dans l'ordre imposé par le cours *Building a Datase
 
 1. **Cohorte** (fixe le grain) : une substance ATC5 × un mois *d*, pour les substances qui ont au moins
    un médicament commercialisé à *d* d'après `bdpm_*_historique` (jointure *as-of*).
-2. **Variables** : uniquement des événements **publiés avant *d*** (`publication < d`,
-   `date_signalement < d`, BDPM valable à *d*, consommation de l'année précédente, liste critique UE si
-   `date_inscription < d`).
+2. **Variables** : uniquement des informations **publiées avant *d*** : épisodes avec
+   `publication < d` (et leur fin seulement si `fin_connue_le < d`), BDPM valable à *d*, consommation de
+   l'année précédente, liste critique UE si `date_inscription < d`. Les signalements ne sont publiés
+   que 9 à 22 mois après leur date (un classeur par an) : comme variables, seulement les années déjà
+   publiées à *d* ; l'historique récent vient de la page ANSM. Voir [METHODE.md](METHODE.md), section 3.
 3. **Label** : au moins un signalement ANSM dans `[d, d + 3 mois)`, où *d* est le 1er jour du mois
    *t* + 1 : les variables voient tout le mois *t*, le label couvre les mois *t* + 1 à *t* + 3 (la
    formulation de QUESTIONS.md). Les mois dont la fenêtre dépasse 12/2025 (fin des signalements

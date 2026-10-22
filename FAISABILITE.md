@@ -71,9 +71,10 @@ La dernière colonne dit quelle date de disponibilité est utilisée : c'est l'�
 | Structure du marché | nb de spécialités, de titulaires, de génériques, part du princeps | `bdpm_*_historique` | version valable à *d* (jointure as-of) |
 | Produit | forme (injectable / orale…), voie, ATC1-4 | `bdpm_specialites_historique`, `atc` | idem |
 | Criticité | MITM ; liste critique de l'UE | `bdpm_mitm` (photo de 2026 : limite) ; `ue_liste_critique` | UE : `date_inscription < d` |
-| Demande | boîtes remboursées, évolution sur un an | `consommation` | année *t*-1 (une année Open Medic n'est publiée que l'année suivante) |
-| Historique | signalements sur 3 et 12 mois, mois depuis le dernier, nb de laboratoires signalants | `ansm_signalements` | `date_signalement < d` |
-| **Cascade (Q1)** | nb d'**autres** substances de la même ATC4 signalées sur 3 mois | `ansm_signalements`, `shortage_events` | `< d`, la substance elle-même exclue |
+| Demande | boîtes remboursées, évolution sur un an | `consommation` | année *t*-1 (une année n'est complète qu'après sa fin) |
+| Historique récent | pénurie affichée sur 3 et 12 mois, mois depuis la dernière, gravité ; durée des pénuries passées | `shortage_events` (France) | `publication < d` ; fin et durée seulement si `fin_connue_le < d` |
+| Historique long | signalements par an, nb de laboratoires signalants | `ansm_signalements` | **années déjà publiées à *d*** : les classeurs paraissent 9 à 22 mois après les faits (METHODE.md, section 3) |
+| **Cascade (Q1)** | nb d'**autres** substances de la même ATC4 en pénurie affichée sur 3 mois | `shortage_events` (France) | `publication < d`, la substance elle-même exclue |
 | **Contagion (Q2)** | substance en pénurie en Italie ou en Allemagne sur 3 mois ; pays couvert ou non | `shortage_events` | `publication < d` (jamais `debut`) |
 | Saison et période | mois, hiver, **année** (rupture de série 2022-2023) | *d* | — |
 

@@ -29,7 +29,11 @@ La branche `Belkacemi-data-collection` a été fusionnée dans `main` (fast-forw
 | `CHANGELOG_DATA.md`, `matplotlib` dans `requirements.txt` | ✅ |
 | Docs (README, DONNEES, QUESTIONS, FAISABILITE) | ✅ mises à jour : cible, cohorte, variables avec leur date de disponibilité, découpage temporel corrigé |
 | Rapport TME4 | inchangé : livrable rendu, photo du 05/10 |
-| Cohorte MITM, `panel_fr`, modèles | ⏳ à faire : décision de cohorte à prendre à deux, puis § 6 |
+| Fin d'épisode connue après coup | ✅ `fin_connue_le` |
+| dtype `category`, manifeste complet (sommes, empreintes) gardé dans git | ✅ |
+| Latence des signalements (publiés 9 à 22 mois après) | ✅ découvert le 22/10 : ils servent au label, pas à l'historique récent ; plan des variables corrigé |
+| Justification des choix au regard des cours | ✅ [METHODE.md](METHODE.md) |
+| Cohorte MITM, `panel_fr`, modèles | ⏳ à faire : décision de cohorte à prendre à deux, puis METHODE.md § 8 |
 
 Les sections ci-dessous sont l'audit tel qu'écrit avant la fusion.
 
