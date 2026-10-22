@@ -15,6 +15,8 @@ Règles (vérifiées sur les données le 08/10/2026) :
 - Fiche vue seulement au statut « remise à disposition » : la pénurie a eu lieu entre deux photos.
   L'épisode est gardé, avec un début inconnu (`debut` vide, `debut_au_plus_tot` = photo précédente).
 - Épisode déjà en cours à la première photo (avril 2021) : `censure_gauche` = vrai.
+- `premiere_photo` : première photo où l'épisode est visible (actif ou remis à disposition) :
+  c'est la date à laquelle le public le sait.
 - Épisode encore actif à la dernière photo : `en_cours` = vrai, `fin` vide.
 """
 import pandas as pd
@@ -50,7 +52,8 @@ def episodes_d_une_fiche(obs, photos, rang):
                     debut = min(max(o.date_mise_a_jour, photo_precedente), o.date_photo)
                     censure = False
                 courant = {"debut": debut, "debut_au_plus_tot": photo_precedente, "censure_gauche": censure,
-                           "premiere_photo_active": o.date_photo, "gravite_max": o.statut}
+                           "premiere_photo": o.date_photo, "premiere_photo_active": o.date_photo,
+                           "gravite_max": o.statut}
             if GRAVITE[o.statut] > GRAVITE[courant["gravite_max"]]:
                 courant["gravite_max"] = o.statut
             courant["derniere_photo_active"] = o.date_photo
@@ -62,6 +65,7 @@ def episodes_d_une_fiche(obs, photos, rang):
             elif not episodes or episodes[-1]["type_fin"] != "remise_a_disposition" or r - precedent_rang > 2:
                 # Pénurie apparue et résolue entre deux photos.
                 episodes.append({"debut": None, "debut_au_plus_tot": photo_precedente, "censure_gauche": r == 0,
+                                 "premiere_photo": o.date_photo,
                                  "premiere_photo_active": None, "derniere_photo_active": None,
                                  "gravite_max": None, "fin": fin, "type_fin": "remise_a_disposition"})
         elif o.statut == "arret_commercialisation" and courant is not None:

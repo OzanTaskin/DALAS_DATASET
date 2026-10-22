@@ -3,7 +3,7 @@
 La BDPM ne donne pas l'ATC. On l'obtient par trois voies, de la plus sûre à la moins sûre ;
 la colonne `source_atc` dit laquelle a servi :
 1. open_medic      les boîtes (CIP13) du médicament remboursées en ville ont un ATC dans Open Medic ;
-2. mitm            le médicament est sur la liste MITM, qui fournit l'ATC ;
+2. mitm            le médicament est sur la liste MITM, qui fournit l'ATC (codes à 7 caractères seulement) ;
 3. memes_substances un autre médicament contenant exactement les mêmes substances actives a un ATC
                    (cas fréquent : médicaments hospitaliers, absents d'Open Medic).
 Quand une voie propose plusieurs ATC pour un même CIS, on garde le plus fréquent.
@@ -26,8 +26,9 @@ def construire():
     # 1. Open Medic (seulement les codes ATC5 complets, 7 caractères).
     via_open_medic = plus_frequent(
         presentations.merge(cip_atc[cip_atc["atc5"].str.len() == 7], on="cip13"), "cis", "atc5")
-    # 2. Liste MITM.
-    via_mitm = plus_frequent(mitm.dropna(subset=["atc5"]), "cis", "atc5")
+    # 2. Liste MITM. Elle donne parfois un code de niveau 4 (« B05XC », 5 caractères) au lieu
+    #    d'une substance : ces codes ne sont pas des ATC5 et ne sont pas gardés.
+    via_mitm = plus_frequent(mitm[mitm["atc5"].str.len() == 7], "cis", "atc5")
     connus = pd.concat([via_open_medic.assign(source_atc="open_medic"),
                         via_mitm.assign(source_atc="mitm")]).drop_duplicates("cis")
 

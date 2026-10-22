@@ -6,11 +6,17 @@ recouvrent : on ne les empile pas, chacune apporte ses colonnes.
     nb_signalements, nb_laboratoires_signalants
 - Page publique reconstruite par les archives (`shortage_events`, France, depuis 04/2021) :
     nb_penuries_affichees           épisodes en cours au moins un jour du mois
-    nb_nouvelles_penuries_affichees épisodes qui débutent dans le mois
+    nb_nouvelles_penuries_affichees épisodes qui débutent dans le mois (hors épisodes déjà en
+                                    cours à la première archive, dont le vrai début est inconnu)
     gravite_max_affichee            risque_rupture < tension < rupture, parmi les épisodes en cours
 
+Additivité : les signalements et les nouvelles pénuries sont des flux (on peut les additionner
+sur plusieurs mois) ; `nb_penuries_affichees` est un stock (on ne l'additionne pas sur les mois :
+prendre la valeur d'un mois ou la moyenne de la période).
+
 Une valeur vide veut dire « mois non couvert par la source », pas zéro : les signalements
-s'arrêtent à la dernière année publiée, la page ANSM commence à la première archive.
+s'arrêtent à la dernière année publiée, la page ANSM commence à la première archive et s'arrête au
+dernier mois complet avant la dernière archive (le mois de la dernière archive n'est vu qu'en partie).
 Les substances sont celles de la BDPM (`produits`) et celles vues dans l'une des deux sources.
 Les lignes sans ATC5 des deux sources n'entrent pas dans la table.
 """
@@ -36,7 +42,8 @@ def construire():
     # Périodes couvertes : années entières pour les signalements, première à dernière photo pour la page.
     annees = signalements["annee"]
     mois_signalements = pd.date_range(f"{annees.min()}-01-01", f"{annees.max()}-12-01", freq="MS")
-    mois_page = pd.date_range(photos.min().replace(day=1), photos.max().replace(day=1), freq="MS")
+    dernier_mois_complet = ((photos.max() + pd.Timedelta(days=1)).to_period("M") - 1).to_timestamp()
+    mois_page = pd.date_range(photos.min().replace(day=1), dernier_mois_complet, freq="MS")
     tous_les_mois = mois_signalements.union(mois_page)
 
     signalements = signalements.assign(mois=mois_de(signalements["date_signalement"]),
@@ -52,7 +59,7 @@ def construire():
     en_cours = episodes.explode("mois").dropna(subset=["mois"]).astype({"mois": "datetime64[ns]"})
     par_page = (en_cours.groupby(["atc5", "mois"])
                 .agg(nb_penuries_affichees=("id_episode", "size"), gravite=("gravite", "max")).reset_index())
-    nouvelles = (episodes.groupby(["atc5", "mois_debut"]).size().rename("nb_nouvelles_penuries_affichees")
+    nouvelles = (episodes[~episodes["censure_gauche"]].groupby(["atc5", "mois_debut"]).size().rename("nb_nouvelles_penuries_affichees")
                  .reset_index().rename(columns={"mois_debut": "mois"}))
     noms_gravite = {rang: nom for nom, rang in GRAVITE.items()}
     par_page["gravite_max_affichee"] = par_page.pop("gravite").map(noms_gravite)
