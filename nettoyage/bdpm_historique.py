@@ -26,6 +26,8 @@ import pandas as pd
 from .bdpm import TYPES_GENERIQUE, decoder
 from .commun import RAW, date_du_fichier, enregistrer, normaliser_texte
 
+TAILLE_TRONQUEE = 1_048_576  # 1 Mio : taille à laquelle la Wayback Machine coupe certaines archives
+
 # fichier BDPM : (dossier Wayback, {position de la colonne: nom})
 FICHIERS = {
     "CIS_bdpm": ("bdpm_cis", {0: "cis", 1: "denomination", 2: "forme", 3: "voies",
@@ -39,7 +41,10 @@ def photos_completes(fichier):
     dossier, _ = FICHIERS[fichier]
     chemins = (sorted((RAW / "wayback" / dossier).glob("2*.txt"))
                + sorted((RAW / "bdpm" / "actuel").glob(f"*_{fichier}.txt")))
-    completes = [c for c in chemins if c.read_bytes().endswith(b"\n")]
+    # Tronqué = coupé à 1 Mio par la Wayback Machine. La coupure tombe parfois pile sur une fin de
+    # ligne (CIS_bdpm du 28/09/2022) : la taille exacte compte autant que le dernier caractère.
+    completes = [c for c in chemins
+                 if c.read_bytes().endswith(b"\n") and c.stat().st_size != TAILLE_TRONQUEE]
     print(f"  {fichier:15} {len(completes)} photos complètes sur {len(chemins)} "
           f"({date_du_fichier(completes[0]):%m/%Y} → {date_du_fichier(completes[-1]):%m/%Y})")
     return completes

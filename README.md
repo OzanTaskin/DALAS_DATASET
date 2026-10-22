@@ -45,6 +45,7 @@ python3 -m venv .venv
 .venv/bin/python -m collecte              # niveau 1 : télécharge tout dans data/raw/ (environ 10 min)
 .venv/bin/python -m nettoyage             # niveau 2 : tables dans data/clean/ (environ 30 s)
 .venv/bin/python -m analyse.figures_tme4  # figures du rapport
+.venv/bin/python -m analyse.diagnostics    # graphiques de contrôle des données (data/diagnostics/)
 ```
 
 - Étapes isolées : `python -m collecte actuelles wayback`, `python -m nettoyage controles`.
@@ -88,6 +89,7 @@ nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ord
 └── controles.py          contrôles des tables (dernière étape)
 
 analyse/figures_tme4.py   figures du rapport
+analyse/diagnostics.py    graphiques de contrôle : tailles des archives, lignes lues, cohérence des sources, durées…
 rapport_tme4/             rapport TME4 (LaTeX et PDF)
 ```
 
