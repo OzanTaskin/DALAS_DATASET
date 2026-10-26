@@ -1,7 +1,7 @@
 # Explications détaillées
 
 Ce document accompagne le code et le rapport TME4
-([rapport_tme4/rapport_tme4.pdf](rapport_tme4/rapport_tme4.pdf)). Il explique **ce que contient le
+([Rapport-DALAS-Deliverable1.pdf](Rapport-DALAS-Deliverable1/build/Rapport-DALAS-Deliverable1.pdf)). Il explique **ce que contient le
 dataset, comment il est construit et pourquoi**, en s'appuyant sur les cours *Building a Dataset from a
 Warehouse* (28/09) et *Data Families, Storage Formats and Databases* (05/10). Pour lancer le code, voir le
 [README](README.md) ; pour l'historique des changements de données, [CHANGELOG_DATA.md](CHANGELOG_DATA.md).

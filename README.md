@@ -7,7 +7,7 @@ les méthodes vues en cours.
 | Document | Contenu |
 |---|---|
 | **README.md** (ce fichier) | le projet en bref, comment lancer le code |
-| [rapport_tme4/rapport_tme4.pdf](rapport_tme4/rapport_tme4.pdf) | **le rapport TME4** (2 pages) : questions, collecte, description quantitative, prétraitement |
+| [Rapport-DALAS-Deliverable1/build/Rapport-DALAS-Deliverable1.pdf](Rapport-DALAS-Deliverable1/build/Rapport-DALAS-Deliverable1.pdf) | **le rapport du livrable 1** (2 pages) : questions, collecte, description quantitative, prétraitement |
 | [EXPLICATIONS.md](EXPLICATIONS.md) | **l'explication détaillée** : chaque source, chaque table, chaque choix, et pourquoi, au regard des cours ; la suite du projet |
 | [CHANGELOG_DATA.md](CHANGELOG_DATA.md) | une ligne par changement des données : date, auteur, quoi, pourquoi |
 | `manifestes/` | l'état exact des tables à chaque construction de référence (lignes, sommes, empreintes) |
@@ -29,7 +29,7 @@ qui ne sont jamais en pénurie. L'Italie et l'Allemagne servent de signaux. Dét
 |---|---|
 | Niveau 1 : collecte des sources brutes | ✅ 272 fichiers, environ 500 Mo, empreintes vérifiées |
 | Niveau 2 : tables nettoyées | ✅ 22 tables, dont `shortage_events` (16 769 épisodes FR/IT/DE) et `ansm_signalements` (22 501 signalements 2019-2025) ; 34 contrôles automatiques |
-| TME4 : rapport de 2 pages | ✅ `rapport_tme4/` |
+| Livrable 1 : rapport de 2 pages | ✅ `Rapport-DALAS-Deliverable1/` |
 | Niveau 3 : table d'entraînement `panel_fr` | ⏳ plan dans [EXPLICATIONS.md](EXPLICATIONS.md), section 6 |
 | TME6 : dashboard | ⏳ |
 | TME9 : rapport final | ⏳ |
@@ -44,7 +44,7 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m collecte              # niveau 1 : télécharge tout dans data/raw/ (environ 10 min)
 .venv/bin/python -m nettoyage             # niveau 2 : tables dans data/clean/ (environ 30 s)
-.venv/bin/python -m analyse.figures_tme4  # figures du rapport
+.venv/bin/python -m analyse.figures_rapport  # figures du rapport
 .venv/bin/python -m analyse.diagnostics    # graphiques de contrôle des données (data/diagnostics/)
 ```
 
@@ -88,9 +88,9 @@ nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ord
 ├── france_mensuel.py     → penuries_fr_mensuel (substance × mois)
 └── controles.py          contrôles des tables (dernière étape)
 
-analyse/figures_tme4.py   figures du rapport
+analyse/figures_rapport.py figures du rapport
 analyse/diagnostics.py    graphiques de contrôle : tailles des archives, lignes lues, cohérence des sources, durées…
-rapport_tme4/             rapport TME4 (LaTeX et PDF)
+Rapport-DALAS-Deliverable1/ rapport du livrable 1 (LaTeX et PDF)
 ```
 
 Données (non versionnées) : `data/raw/` (brut, lecture seule), `data/clean/` (tables Parquet), puis, avec

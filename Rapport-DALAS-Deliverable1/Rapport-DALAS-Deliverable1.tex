@@ -1,0 +1,60 @@
+\documentclass[11pt, a4paper]{article}
+
+% ── Encoding & language ───────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+
+% ── Page layout ───────────────────────────────────────────────────────────
+\usepackage{geometry}
+\geometry{margin=1.9cm, top=1.7cm, bottom=1.8cm}
+
+% ── Typography ────────────────────────────────────────────────────────────
+\usepackage{parskip}
+\usepackage{enumitem}
+\setlist{itemsep=1pt, parsep=0pt, topsep=1pt}
+\frenchsetup{ItemLabels=\textbullet}   % puces rondes plutôt que les tirets du style français
+\setlist[itemize]{label=\textbullet}
+
+% ── Tables & figures ──────────────────────────────────────────────────────
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{caption}
+\usepackage[table]{xcolor}  % couleurs des lignes de tableau
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shadows}
+\definecolor{niveaubrut}{HTML}{6B7280}
+\definecolor{niveaupropre}{HTML}{2A78D6}
+\definecolor{niveaufinal}{HTML}{1BAF7A}
+% Tableaux : en-tête teinté, lignes alternées, filet fin (même palette que le schéma)
+\newcommand{\entete}[1]{\textbf{\color{niveaubrut!20!black}#1}}
+\newcommand{\filet}{\arrayrulecolor{niveaubrut!40}\hline}
+\usepackage{float}  % [H] : figures et tableaux à l'endroit exact du texte
+% Espacements resserrés (titres, figures et tableaux) : deux pages au plus, sans densifier le texte
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{2.2ex plus 0.5ex}{1ex}
+\setlength{\intextsep}{6pt plus 2pt}
+\captionsetup{skip=4pt}
+
+\captionsetup{font=small, labelfont=bf}
+\AtBeginDocument{\renewcommand{\tablename}{Tableau}}
+
+% ── Hyperlinks ────────────────────────────────────────────────────────────
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
+
+% ── Metadata ──────────────────────────────────────────────────────────────
+\input{frontmatter/metadata}
+
+% ══════════════════════════════════════════════════════════════════════════
+
+\begin{document}
+
+\maketitle
+
+% Pas de table des matières : le livrable 1 tient en deux pages.
+
+\input{sections/content}
+
+\end{document}

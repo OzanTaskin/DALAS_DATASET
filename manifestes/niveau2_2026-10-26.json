@@ -1,6 +1,6 @@
 {
  "ansm_episodes": {
-  "construite_le": "2026-10-22T19:37:41",
+  "construite_le": "2026-10-26T18:20:23",
   "lignes": 1599,
   "colonnes": [
    "fiche",
@@ -31,12 +31,12 @@
    "duree_jours": 293157.0
   },
   "empreinte_contenu": "b1b138363a70dbe7",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "ansm_fiches": {
-  "construite_le": "2026-10-22T19:37:41",
+  "construite_le": "2026-10-26T18:20:23",
   "lignes": 1470,
   "colonnes": [
    "fiche",
@@ -51,12 +51,12 @@
   "valeurs_vides": 917,
   "sommes": {},
   "empreinte_contenu": "489fd88caf6e9bff",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "ansm_observations": {
-  "construite_le": "2026-10-22T19:37:39",
+  "construite_le": "2026-10-26T18:20:21",
   "lignes": 17700,
   "colonnes": [
    "date_photo",
@@ -72,12 +72,12 @@
   "valeurs_vides": 32394,
   "sommes": {},
   "empreinte_contenu": "def8e5406dd63c37",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "ansm_signalements": {
-  "construite_le": "2026-10-22T19:37:44",
+  "construite_le": "2026-10-26T18:20:27",
   "lignes": 22501,
   "colonnes": [
    "date_signalement",
@@ -95,12 +95,12 @@
    "annee": 45509661.0
   },
   "empreinte_contenu": "005289ddd2c8953d",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "atc": {
-  "construite_le": "2026-10-22T19:37:36",
+  "construite_le": "2026-10-26T18:20:18",
   "lignes": 1333,
   "colonnes": [
    "atc1",
@@ -117,12 +117,12 @@
   "valeurs_vides": 0,
   "sommes": {},
   "empreinte_contenu": "98e6a490da906efd",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "bdpm_compositions": {
-  "construite_le": "2026-10-22T19:37:20",
+  "construite_le": "2026-10-26T18:20:00",
   "lignes": 32439,
   "colonnes": [
    "cis",
@@ -137,12 +137,12 @@
   "valeurs_vides": 5688,
   "sommes": {},
   "empreinte_contenu": "2cfb4b1130959112",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "bdpm_dispo_observations": {
-  "construite_le": "2026-10-22T19:37:20",
+  "construite_le": "2026-10-26T18:20:00",
   "lignes": 10807,
   "colonnes": [
    "date_photo",
@@ -160,12 +160,12 @@
   "valeurs_vides": 18356,
   "sommes": {},
   "empreinte_contenu": "fb7d66aa264c2d97",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "bdpm_generiques": {
-  "construite_le": "2026-10-22T19:37:20",
+  "construite_le": "2026-10-26T18:20:00",
   "lignes": 10737,
   "colonnes": [
    "groupe_generique",
@@ -177,12 +177,12 @@
   "valeurs_vides": 0,
   "sommes": {},
   "empreinte_contenu": "7aee188b6eaab1cf",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "bdpm_generiques_historique": {
-  "construite_le": "2026-10-26T18:12:26",
+  "construite_le": "2026-10-26T18:20:04",
   "lignes": 15810,
   "colonnes": [
    "groupe_generique",
@@ -194,12 +194,12 @@
   "valeurs_vides": 10737,
   "sommes": {},
   "empreinte_contenu": "15ccd4967d967a3f",
-  "commit": "ff62651",
+  "commit": "c9e64a0",
   "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "bdpm_mitm": {
-  "construite_le": "2026-10-22T19:37:20",
+  "construite_le": "2026-10-26T18:20:00",
   "lignes": 7711,
   "colonnes": [
    "cis",
@@ -210,12 +210,12 @@
   "valeurs_vides": 0,
   "sommes": {},
   "empreinte_contenu": "d7ce10bce73f6d14",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "bdpm_presentations": {
-  "construite_le": "2026-10-22T19:37:20",
+  "construite_le": "2026-10-26T18:20:00",
   "lignes": 20923,
   "colonnes": [
    "cis",
@@ -239,12 +239,12 @@
    "honoraires": 17054.94
   },
   "empreinte_contenu": "e65a592354a812ef",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "bdpm_presentations_historique": {
-  "construite_le": "2026-10-26T18:12:26",
+  "construite_le": "2026-10-26T18:20:04",
   "lignes": 38776,
   "colonnes": [
    "cip13",
@@ -258,12 +258,12 @@
    "commercialisee": 27221.0
   },
   "empreinte_contenu": "f2961d0bf671daef",
-  "commit": "ff62651",
+  "commit": "c9e64a0",
   "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "bdpm_specialites": {
-  "construite_le": "2026-10-22T19:37:20",
+  "construite_le": "2026-10-26T18:19:59",
   "lignes": 15883,
   "colonnes": [
    "cis",
@@ -282,12 +282,12 @@
   "valeurs_vides": 27162,
   "sommes": {},
   "empreinte_contenu": "0dc0aeb98b31408b",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "bdpm_specialites_historique": {
-  "construite_le": "2026-10-26T18:12:23",
+  "construite_le": "2026-10-26T18:20:02",
   "lignes": 36200,
   "colonnes": [
    "cis",
@@ -304,12 +304,12 @@
    "commercialise": 28499.0
   },
   "empreinte_contenu": "089273332937646e",
-  "commit": "ff62651",
+  "commit": "c9e64a0",
   "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "cip_atc": {
-  "construite_le": "2026-10-22T19:37:36",
+  "construite_le": "2026-10-26T18:20:18",
   "lignes": 15963,
   "colonnes": [
    "cip13",
@@ -325,12 +325,12 @@
    "derniere_annee_remboursee": 32313578.0
   },
   "empreinte_contenu": "8ed378bf6d3eaae7",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "consommation": {
-  "construite_le": "2026-10-22T19:37:36",
+  "construite_le": "2026-10-26T18:20:18",
   "lignes": 8045,
   "colonnes": [
    "atc5",
@@ -347,12 +347,12 @@
    "nb_presentations": 88155.0
   },
   "empreinte_contenu": "66a8f8b0457c4d87",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "europe_episodes": {
-  "construite_le": "2026-10-22T19:37:47",
+  "construite_le": "2026-10-26T18:20:29",
   "lignes": 15170,
   "colonnes": [
    "pays",
@@ -380,12 +380,12 @@
    "en_cours": 3033.0
   },
   "empreinte_contenu": "f35226518402381e",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "europe_observations": {
-  "construite_le": "2026-10-22T19:37:46",
+  "construite_le": "2026-10-26T18:20:28",
   "lignes": 171552,
   "colonnes": [
    "pays",
@@ -403,12 +403,12 @@
   "valeurs_vides": 304854,
   "sommes": {},
   "empreinte_contenu": "295a91ff9ad46920",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "penuries_fr_mensuel": {
-  "construite_le": "2026-10-22T19:37:47",
+  "construite_le": "2026-10-26T18:20:30",
   "lignes": 146475,
   "colonnes": [
    "atc5",
@@ -428,12 +428,12 @@
    "nb_nouvelles_penuries_affichees": 1341.0
   },
   "empreinte_contenu": "0d6de3e16b35a254",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "produits": {
-  "construite_le": "2026-10-22T19:37:36",
+  "construite_le": "2026-10-26T18:20:18",
   "lignes": 15883,
   "colonnes": [
    "cis",
@@ -458,12 +458,12 @@
    "nb_substances": 20862.0
   },
   "empreinte_contenu": "553e8764aa46f3da",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "shortage_events": {
-  "construite_le": "2026-10-22T19:37:47",
+  "construite_le": "2026-10-26T18:20:30",
   "lignes": 16769,
   "colonnes": [
    "pays",
@@ -491,12 +491,12 @@
    "censure_gauche": 3089.0
   },
   "empreinte_contenu": "09d424c0334b45ff",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  },
  "ue_liste_critique": {
-  "construite_le": "2026-10-22T19:37:25",
+  "construite_le": "2026-10-26T18:20:05",
   "lignes": 299,
   "colonnes": [
    "atc5",
@@ -507,8 +507,8 @@
   "valeurs_vides": 0,
   "sommes": {},
   "empreinte_contenu": "8521d1f7e2d43597",
-  "commit": "ab65614",
-  "empreinte_code": "6c3a01bfa67747a3",
+  "commit": "c9e64a0",
+  "empreinte_code": "546b410f77328187",
   "empreinte_brut": "68f6a33687fe09e4"
  }
 }
