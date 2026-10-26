@@ -90,7 +90,7 @@ archive par mois des listes, ce qui permet de reconstruire ce qui était publié
 **Archives tronquées.** La Wayback Machine a coupé à exactement 1 Mio (1 048 576 octets) 51 des 121
 archives de la BDPM, surtout entre 2019 et 2025 : le fichier s'arrête au milieu d'une ligne, avec environ
 5 300 médicaments au lieu de 14 000. Elles restent dans le brut (on n'y touche jamais) mais sont écartées
-au nettoyage. Photos complètes des médicaments : 2015 → 06/2020, 09/2022, puis 05/2024 → 2026. Les
+au nettoyage. Photos complètes des médicaments : 2015 → 06/2020, puis 05/2024 → 2026 (celle du 28/09/2022 fait 1 Mio pile et se termine par hasard sur une fin de ligne : elle est aussi écartée, d'où un test sur la taille exacte et pas seulement sur le dernier caractère). Les
 archives ANSM, AIFA et BfArM ne sont pas touchées.
 
 ---
@@ -130,7 +130,7 @@ téléchargés                (une ligne = un objet)          (une ligne = une s
 | `cip_atc` | une boîte (CIP13) avec son ATC5 | 15 963 |
 | `ue_liste_critique` | une substance critique pour l'UE, avec sa date d'inscription | 299 |
 | `bdpm_specialites`, `bdpm_presentations`, `bdpm_compositions`, `bdpm_generiques`, `bdpm_mitm` | la BDPM du jour | 7 711 à 32 439 |
-| `bdpm_specialites_historique` | une **version** d'un médicament, valable sur `[valid_from, valid_to)` | 42 206 |
+| `bdpm_specialites_historique` | une **version** d'un médicament, valable sur `[valid_from, valid_to)` | 36 200 |
 | `bdpm_presentations_historique` | une version d'une boîte | 38 776 |
 | `bdpm_generiques_historique` | une version de l'appartenance d'un médicament à un groupe générique | 15 810 |
 
