@@ -63,7 +63,10 @@ def figure_evolution():
                     color=TEXTE_SECONDAIRE, fontsize=6, va="bottom")
         segment = (s["date_photo"].diff() > TROU).cumsum()
         for _, morceau in s.groupby(segment):
-            ax.plot(morceau["date_photo"], morceau["n"], color=COULEURS[pays], linewidth=2)
+            # Un point par archive : une archive isolée entre deux trous (fréquent en Allemagne, archives
+            # espacées de 3 à 4 mois) ne forme pas de ligne et serait sinon invisible.
+            ax.plot(morceau["date_photo"], morceau["n"], color=COULEURS[pays], linewidth=2,
+                    marker="o", markersize=2.5)
         ax.set_title(NOMS[pays], color=TEXTE, fontsize=8.5, loc="left")
         ax.grid(axis="y", color=GRILLE, linewidth=0.6)
         ax.tick_params(length=0)
