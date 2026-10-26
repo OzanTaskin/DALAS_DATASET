@@ -80,8 +80,23 @@ allemande (07/2024--09/2026) et 121 de la BDPM (2015--2026), qui décrivent le m
 \section{Description quantitative}
 
 Le dataset est organisé autour d'une table centrale, \texttt{shortage\_events} : \nb{une ligne = un épisode de pénurie d'un
-médicament dans un pays} (substance, ATC5, début, date de publication, fin, gravité, raison). Elle compte \nb{16\,769
-épisodes}, décrits par des tables sur les médicaments, la classification ATC et la consommation.
+médicament dans un pays}, soit \nb{16\,769 épisodes}. La cible viendra de \texttt{ansm\_signalements} (\nb{une ligne = une
+déclaration d'un laboratoire}). Variables principales :
+
+\begin{center}\footnotesize
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+Variable & Signification \\
+\midrule
+\texttt{atc5}, \texttt{atc4} & substance active (code ATC niveau 5), clé commune aux trois pays ; classe thérapeutique (niveau 4), qui définit les substituts (Q1) \\
+\texttt{debut}, \texttt{fin} & début déclaré et fin de la pénurie (fin vide si l'épisode est encore en cours) \\
+\texttt{publication}, \texttt{fin\_connue\_le} & dates où l'épisode, puis sa fin, deviennent visibles sur les listes : les seules utilisables pour prédire \\
+\texttt{gravite} (FR), \texttt{raison} (IT, DE) & risque de rupture < tension < rupture ; cause déclarée (production, demande…) \\
+\texttt{date\_signalement}, \texttt{laboratoire} & date de la déclaration à l'ANSM et laboratoire déclarant (table des signalements) \\
+dimensions & médicament (forme, voie, titulaires, génériques, statut MITM), boîtes remboursées par substance et par an, liste critique UE \\
+\bottomrule
+\end{tabularx}
+\end{center}
 
 \begin{center}\small
 \begin{tabular}{@{}l r r r r l@{}}
@@ -100,8 +115,7 @@ Allemagne (BfArM) & 2\,000 & 549 & 509 & 97\,\% & 07/2024--10/2026 \\
 
 
 \textbf{France.} Les nouvelles pénuries publiées passent de 300 (2022) à \nb{354 (2023)}, pic de la crise des antibiotiques
-de l'hiver 2022-2023, puis 271 (2024) et 195 (2025). Les signalements suivent la même hausse : 2\,167 en 2021, \nb{4\,925
-en 2023}. 60\,\% des épisodes sont des tensions d'approvisionnement, 40\,\% des ruptures. Durée médiane : \nb{128 jours}
+de l'hiver 2022-2023, puis 271 (2024) et 195 (2025). 60\,\% des épisodes sont des tensions d'approvisionnement, 40\,\% des ruptures. Durée médiane : \nb{128 jours}
 (quartiles 53 et 284 jours, 1\,130 épisodes complets) ; 18\,\% durent plus d'un an. Anticancéreux et antibiotiques dominent (fig.~\ref{fig:classes}).
 
 
