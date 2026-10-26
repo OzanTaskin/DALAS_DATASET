@@ -1,7 +1,7 @@
-"""Figures du rapport TME4 (rapport_tme4/figures/*.pdf), à partir de data/clean.
+"""Figures du rapport du livrable 1 (Rapport-DALAS-Deliverable1/figures/*.pdf), à partir de data/clean.
 
 Usage :
-    python -m analyse.figures_tme4
+    python -m analyse.figures_rapport
 
 Couleurs : trois premiers emplacements de la palette catégorielle de référence
 (validés deux à deux, y compris pour les daltoniens) ; une couleur par pays, toujours la même.
@@ -16,7 +16,7 @@ import pandas as pd
 
 RACINE = Path(__file__).resolve().parent.parent
 CLEAN = RACINE / "data" / "clean"
-SORTIE = RACINE / "rapport_tme4" / "figures"
+SORTIE = RACINE / "Rapport-DALAS-Deliverable1" / "figures"
 
 COULEURS = {"FR": "#2a78d6", "IT": "#eb6834", "DE": "#1baf7a"}
 NOMS = {"FR": "France (ANSM)", "IT": "Italie (AIFA)", "DE": "Allemagne (BfArM)"}
@@ -63,7 +63,10 @@ def figure_evolution():
                     color=TEXTE_SECONDAIRE, fontsize=6, va="bottom")
         segment = (s["date_photo"].diff() > TROU).cumsum()
         for _, morceau in s.groupby(segment):
-            ax.plot(morceau["date_photo"], morceau["n"], color=COULEURS[pays], linewidth=2)
+            # Un point par archive : une archive isolée entre deux trous (fréquent en Allemagne, archives
+            # espacées de 3 à 4 mois) ne forme pas de ligne et serait sinon invisible.
+            ax.plot(morceau["date_photo"], morceau["n"], color=COULEURS[pays], linewidth=2,
+                    marker="o", markersize=2.5)
         ax.set_title(NOMS[pays], color=TEXTE, fontsize=8.5, loc="left")
         ax.grid(axis="y", color=GRILLE, linewidth=0.6)
         ax.tick_params(length=0)

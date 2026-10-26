@@ -1,0 +1,9 @@
+# Versionnés : sources LaTeX, figures et PDF compilé.
+build/*
+!build/Rapport-DALAS-Deliverable1.pdf
+.vscode/
+scripts/
+assets/
+styles/
+.DS_Store
+GETTING_STARTED.md

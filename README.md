@@ -86,7 +86,7 @@ résultats, on peut ajouter une de ces directions :
 | **Niveau 1 : collecte des sources brutes** | ✅ fait (≈ 280 fichiers, ≈ 480 Mo ; empreintes vérifiées) |
 | **Niveau 2 : tables nettoyées** | ✅ fait (22 tables, dont `shortage_events` : 16 769 épisodes FR/IT/DE, `ansm_signalements` : 22 501 signalements officiels 2019-2025, `penuries_fr_mensuel`, la BDPM historisée et la liste critique de l'UE ; 24 contrôles automatiques) |
 | Niveau 3 : datasets finaux (`panel_fr`) | ⏳ à faire : plan dans [DONNEES.md](DONNEES.md) et [FAISABILITE.md](FAISABILITE.md) |
-| TME4 : rapport de 2 pages | ✅ `rapport_tme4/` (chiffres du 05/10/2026, avant les corrections de la branche de collecte) |
+| Livrable 1 : rapport de 2 pages | ✅ `Rapport-DALAS-Deliverable1/` |
 | TME6 : dashboard | ⏳ |
 | TME9 : rapport final | ⏳ |
 
@@ -102,7 +102,7 @@ python3 -m venv .venv
 .venv/bin/python -m nettoyage                   # niveau 2 : tables nettoyées dans data/clean/ (≈ 30 s)
 .venv/bin/python -m collecte actuelles wayback  # seulement certaines étapes
 .venv/bin/python -m nettoyage controles         # seulement les contrôles des tables
-.venv/bin/python -m analyse.figures_tme4        # figures du rapport TME4
+.venv/bin/python -m analyse.figures_rapport     # figures du rapport du livrable 1
 ```
 
 - La collecte peut être relancée : les fichiers déjà présents ne sont pas retéléchargés.
@@ -145,7 +145,7 @@ nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ord
 └── controles.py          contrôles des tables (dernière étape)
 
 analyse/
-└── figures_tme4.py       figures du rapport TME4
+└── figures_rapport.py    figures du rapport du livrable 1
 ```
 
 Arborescence des données (cours *Data Storage*) : `data/raw/` (brut, en lecture seule),
