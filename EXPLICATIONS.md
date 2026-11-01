@@ -51,7 +51,7 @@ pays (leur univers de médicaments n'est pas disponible), expliquer les causes i
 ## 2. Les sources
 
 Toutes sont publiques et officielles, collectées par `python -m collecte` (05/10/2026, signalements le
-22/10/2026) : 272 fichiers, environ 500 Mo.
+22/10/2026) : 289 fichiers, environ 500 Mo.
 
 ### France : ce qu'on prédit
 
@@ -340,15 +340,26 @@ virgule flottante, précision des dates selon la version de pandas) a été corr
 
 ---
 
-## 6. La suite : la table d'entraînement
+## 6. La table d'entraînement (niveau 3, construite) et la suite
+
+**État** : les étapes 1 à 5 ci-dessous sont faites dans `nettoyage/panel.py` (`python -m nettoyage panel`, résultat dans
+`data/final/panel_fr.parquet`, manifeste dans `manifestes/niveau3_<date>.json`). Écarts avec le plan : le mois *t* est
+le mois de prédiction, avec les informations connues à sa fin, et la cible regarde *t*+1 à *t*+3 (81 mois, 01/2019 à
+09/2025, 99 063 lignes). Les signalements ne servent qu'en cumul des années civiles précédentes (publication tardive).
+Un épisode est « affiché » de sa `publication` jusqu'à `fin_connue_le`, jamais jusqu'à sa `fin` réelle. Les variables
+vides signalent un mois non couvert par la source, pas un zéro. Contrôles : grain, nombre de lignes, taux de positifs,
+écart de trois mois entre jeux, et recalcul des variables avec les seules données publiées à 06/2024. Restent : la
+référence à battre, les modèles avec et sans Q1/Q2, la table de prédiction et le rangement des modèles.
 
 Le plan suit l'ordre imposé par le cours 1 (diapos 53 à 63).
 
 1. **Cohorte (fixe le grain).** Une ligne par substance et par mois *d*, pour les substances qui ont au
-   moins un médicament commercialisé à *d* d'après la BDPM historisée. **Décision à prendre** : les
-   signalements ne concernent que les MITM ; les substances qui en ont connaissent 12,1 % de mois avec un
-   signalement, les autres 1,2 %. Nous proposons de restreindre la cohorte aux substances MITM (1 223 sur
-   1 514), sinon le modèle apprendrait surtout « MITM ou pas ».
+   moins un médicament commercialisé à *d* d'après la BDPM historisée. **Décision prise** : les
+   signalements ne concernent que les MITM ; sur la cible à 3 mois, 24 % de cas positifs pour les substances
+   qui en ont, 3 % pour les autres (12,1 % et 1,2 % de mois avec un signalement). La cohorte est donc
+   restreinte aux substances MITM (1 223 sur 1 514), sinon le modèle apprendrait surtout « MITM ou pas ».
+   La faisabilité chiffrée (positifs, repère naïf, exposition pour Q1 et Q2) est dans
+   `analyse/faisabilite.py` et résumée dans le rapport.
 2. **Variables**, chacune avec sa date de disponibilité :
 
    | Famille | Exemples | Source | Règle temporelle |

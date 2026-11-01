@@ -1,0 +1,42 @@
+{
+ "panel_fr": {
+  "construite_le": "2026-11-01T17:40:23",
+  "lignes": 99063,
+  "colonnes": [
+   "atc5",
+   "mois",
+   "cible",
+   "annee",
+   "mois_num",
+   "jeu",
+   "fr_affichee_3m",
+   "fr_autres_classe_3m",
+   "it_affichee_3m",
+   "de_affichee_3m",
+   "sig_an_prec",
+   "sig_cumul_avant",
+   "conso_boites_an_prec",
+   "conso_presentations_an_prec",
+   "ue_critique"
+  ],
+  "valeurs_vides": 317461,
+  "sommes": {
+   "cible": 24101.0,
+   "annee": 200294379.0,
+   "mois_num": 627399.0,
+   "fr_affichee_3m": 7880.0,
+   "fr_autres_classe_3m": 27993.0,
+   "it_affichee_3m": 19358.0,
+   "de_affichee_3m": 2158.0,
+   "sig_an_prec": 203763.0,
+   "sig_cumul_avant": 573402.0,
+   "conso_boites_an_prec": 129164418009.0,
+   "conso_presentations_an_prec": 748413.0,
+   "ue_critique": 5254.0
+  },
+  "empreinte_contenu": "0bbb89ac990795a2",
+  "commit": "1df24b9+modifs",
+  "empreinte_code": "49fa480bbbc913d0",
+  "empreinte_brut": "68f6a33687fe09e4"
+ }
+}

@@ -27,10 +27,10 @@ qui ne sont jamais en pénurie. L'Italie et l'Allemagne servent de signaux. Dét
 
 | Étape | Statut |
 |---|---|
-| Niveau 1 : collecte des sources brutes | ✅ 272 fichiers, environ 500 Mo, empreintes vérifiées |
+| Niveau 1 : collecte des sources brutes | ✅ 289 fichiers, environ 500 Mo, empreintes vérifiées |
 | Niveau 2 : tables nettoyées | ✅ 22 tables, dont `shortage_events` (16 769 épisodes FR/IT/DE) et `ansm_signalements` (22 501 signalements 2019-2025) ; 34 contrôles automatiques |
 | Livrable 1 : rapport de 2 pages | ✅ `Rapport-DALAS-Deliverable1/` |
-| Niveau 3 : table d'entraînement `panel_fr` | ⏳ plan dans [EXPLICATIONS.md](EXPLICATIONS.md), section 6 |
+| Niveau 3 : table d'entraînement `panel_fr` | ✅ 99 063 lignes (1 223 substances × 81 mois), cible, 11 variables, découpage temporel ; 9 contrôles ; voir [EXPLICATIONS.md](EXPLICATIONS.md), section 6 |
 | TME6 : dashboard | ⏳ |
 | TME9 : rapport final | ⏳ |
 
@@ -43,9 +43,11 @@ Python 3.11 ou plus récent (pandas 3 l'exige). Testé avec Python 3.14 et panda
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m collecte              # niveau 1 : télécharge tout dans data/raw/ (environ 10 min)
-.venv/bin/python -m nettoyage             # niveau 2 : tables dans data/clean/ (environ 30 s)
+.venv/bin/python -m nettoyage             # niveau 2 : tables dans data/clean/ (environ 30 s), puis niveau 3 : data/final/panel_fr.parquet
 .venv/bin/python -m analyse.figures_rapport  # figures du rapport
 .venv/bin/python -m analyse.diagnostics    # graphiques de contrôle des données (data/diagnostics/)
+.venv/bin/python -m analyse.description     # description chiffrée du dataset (tableaux du rapport)
+.venv/bin/python -m analyse.faisabilite    # faisabilité chiffrée : cible, cohorte, Q1 et Q2
 ```
 
 - Étapes isolées : `python -m collecte actuelles wayback`, `python -m nettoyage controles`.
@@ -86,10 +88,13 @@ nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ord
 ├── europe.py             Italie, Allemagne → europe_observations, europe_episodes
 ├── evenements.py         table centrale shortage_events
 ├── france_mensuel.py     → penuries_fr_mensuel (substance × mois)
-└── controles.py          contrôles des tables (dernière étape)
+├── controles.py          contrôles des tables du niveau 2
+└── panel.py              niveau 3 : table d'entraînement panel_fr (data/final/), avec ses contrôles
 
 analyse/figures_rapport.py figures du rapport
 analyse/diagnostics.py    graphiques de contrôle : tailles des archives, lignes lues, cohérence des sources, durées…
+analyse/description.py    description du dataset : dimensions, couverture, durées, gravité, causes, analyse exploratoire (manquants, asymétrie, corrélations)
+analyse/faisabilite.py    faisabilité : taux de cas positifs, repère naïf, exposition pour Q1 et Q2
 Rapport-DALAS-Deliverable1/ rapport du livrable 1 (LaTeX et PDF)
 ```
 

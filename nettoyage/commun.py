@@ -73,14 +73,15 @@ def resume(table):
             "empreinte_contenu": empreinte(pd.util.hash_pandas_object(table, index=False).to_numpy().tobytes())}
 
 
-def enregistrer(table, nom):
-    """Écrit la table en Parquet et la trace dans data/clean/manifeste.json (résumé du contenu
-    et provenance), pour pouvoir comparer deux exécutions (cours, diapo 65)."""
-    CLEAN.mkdir(parents=True, exist_ok=True)
-    chemin = CLEAN / f"{nom}.parquet"
+def enregistrer(table, nom, dossier=CLEAN):
+    """Écrit la table en Parquet et la trace dans le manifeste.json du dossier (résumé du contenu
+    et provenance), pour pouvoir comparer deux exécutions (cours, diapo 65). Niveau 2 : data/clean ;
+    niveau 3 : data/final."""
+    dossier.mkdir(parents=True, exist_ok=True)
+    chemin = dossier / f"{nom}.parquet"
     table.to_parquet(chemin, index=False)
 
-    manifeste = CLEAN / "manifeste.json"
+    manifeste = dossier / "manifeste.json"
     entrees = json.loads(manifeste.read_text()) if manifeste.exists() else {}
     entrees[nom] = {"construite_le": datetime.now().isoformat(timespec="seconds"),
                     **resume(table), **provenance()}
