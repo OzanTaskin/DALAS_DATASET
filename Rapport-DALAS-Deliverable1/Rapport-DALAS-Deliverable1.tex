@@ -11,7 +11,7 @@
 
 % ── Typography ────────────────────────────────────────────────────────────
 \usepackage{parskip}
-\setlength{\parskip}{0.4\baselineskip plus 1pt minus 1pt}  % espace entre paragraphes un peu réduit (2 pages)
+\setlength{\parskip}{0.48\baselineskip plus 1pt minus 1pt}  % espace entre paragraphes un peu réduit (2 pages)
 \usepackage{enumitem}
 \setlist{itemsep=1pt, parsep=0pt, topsep=1pt}
 \frenchsetup{ItemLabels=\textbullet}   % puces rondes plutôt que les tirets du style français
@@ -31,10 +31,11 @@
 % Tableaux : en-tête teinté, lignes alternées, filet fin (même palette que le schéma)
 \newcommand{\entete}[1]{\textbf{\color{niveaubrut!20!black}#1}}
 \newcommand{\filet}{\arrayrulecolor{niveaubrut!40}\hline}
+\newcommand{\var}[1]{\texttt{\color{niveaubrut!30!black}#1}}  % nom de variable
 \usepackage{float}  % [H] : figures et tableaux à l'endroit exact du texte
 % Espacements resserrés (titres, figures et tableaux) : deux pages au plus, sans densifier le texte
 \usepackage{titlesec}
-\titlespacing*{\section}{0pt}{2.2ex plus 0.5ex}{1ex}
+\titlespacing*{\section}{0pt}{2.3ex plus 0.5ex}{1ex}
 \setlength{\intextsep}{6pt plus 2pt}
 \captionsetup{skip=4pt}
 

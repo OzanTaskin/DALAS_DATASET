@@ -12,7 +12,10 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+
+from analyse.description import durees_france
 
 RACINE = Path(__file__).resolve().parent.parent
 CLEAN = RACINE / "data" / "clean"
@@ -47,7 +50,7 @@ def figure_evolution():
     serie = penuries_par_photo()
     debut, fin = serie["date_photo"].min(), serie["date_photo"].max()
     # Petits multiples : les volumes diffèrent d'un facteur 10 entre pays, chaque panneau a son échelle.
-    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.1), sharex=True)
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 1.5), sharex=True)
     for ax, pays in zip(axes, ["FR", "IT", "DE"]):
         s = serie[serie["pays"] == pays].sort_values("date_photo").reset_index(drop=True)
         ax.set_ylim(0, s["n"].max() * 1.18)
@@ -83,6 +86,27 @@ def figure_evolution():
     plt.close(fig)
 
 
+def figure_durees(evenements):
+    """Distribution des durées des pénuries françaises (échelle logarithmique), avec médiane et quartiles."""
+    jours = durees_france(evenements[evenements["pays"] == "FR"])
+    q1, med, q3 = jours.quantile([0.25, 0.5, 0.75])
+    fig, ax = plt.subplots(figsize=(3.3, 1.35))
+    bornes = np.logspace(0, np.log10(jours.max() + 1), 26)
+    ax.hist(jours.clip(lower=1), bins=bornes, color=COULEURS["FR"], alpha=0.85, linewidth=0)
+    ax.set_xscale("log")
+    ax.axvspan(q1, q3, color=GRILLE, alpha=0.7, linewidth=0, zorder=0)
+    ax.axvline(med, color=TEXTE, linewidth=1)
+    ax.text(med * 1.08, ax.get_ylim()[1] * 0.92, f"médiane {med:.0f} j", fontsize=7, color=TEXTE, va="top")
+    ax.set_xlabel("durée d'une pénurie (jours, échelle log)")
+    ax.set_ylabel("épisodes")
+    ax.tick_params(length=0)
+    ax.grid(axis="y", color=GRILLE, linewidth=0.6)
+    ax.set_axisbelow(True)
+    fig.tight_layout()
+    fig.savefig(SORTIE / "durees_france.pdf")
+    plt.close(fig)
+
+
 def figure_classes(evenements, atc):
     france = evenements[evenements["pays"] == "FR"].dropna(subset=["atc5"])
     libelles = atc.drop_duplicates("atc2").set_index("atc2")["libelle_atc2"].str.capitalize()
@@ -110,6 +134,7 @@ def main():
     evenements = evenements[evenements["type_episode"] == "penurie"]
     atc = pd.read_parquet(CLEAN / "atc.parquet")
     figure_evolution()
+    figure_durees(evenements)
     figure_classes(evenements, atc)
     print(f"Figures écrites dans {SORTIE.relative_to(RACINE)}")
 

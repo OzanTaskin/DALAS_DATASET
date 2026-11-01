@@ -6,14 +6,15 @@ Usage :
 
 Avant de construire : vérification des empreintes de la couche brute. En dernière étape :
 contrôles des tables (grain, codes ATC5, intervalles, totaux), voir `controles.py`.
-Chaque table est tracée dans data/clean/manifeste.json.
+Chaque table est tracée dans data/clean/manifeste.json. Dernière étape, `panel` (niveau 3) :
+table d'entraînement data/final/panel_fr.parquet.
 """
 import argparse
 
 from collecte import verification
 
 from . import (ansm, ansm_episodes, ansm_fiches, ansm_signalements, bdpm, bdpm_historique, controles,
-               europe, evenements, france_mensuel, open_medic, produits, ue_liste_critique)
+               europe, evenements, france_mensuel, open_medic, panel, produits, ue_liste_critique)
 
 # L'ordre compte : une étape peut lire les tables produites par les précédentes.
 ETAPES = {
@@ -30,6 +31,7 @@ ETAPES = {
     "evenements": evenements.construire,
     "france_mensuel": france_mensuel.construire,
     "controles": controles.construire,
+    "panel": panel.construire,  # niveau 3 : lit les tables nettoyées contrôlées ci-dessus
 }
 
 

@@ -83,9 +83,9 @@ résultats, on peut ajouter une de ces directions :
 | Étape | Statut |
 |---|---|
 | Questions de recherche et faisabilité | ✅ fait |
-| **Niveau 1 : collecte des sources brutes** | ✅ fait (≈ 280 fichiers, ≈ 480 Mo ; empreintes vérifiées) |
+| **Niveau 1 : collecte des sources brutes** | ✅ fait (289 fichiers, ≈ 480 Mo ; empreintes vérifiées) |
 | **Niveau 2 : tables nettoyées** | ✅ fait (22 tables, dont `shortage_events` : 16 769 épisodes FR/IT/DE, `ansm_signalements` : 22 501 signalements officiels 2019-2025, `penuries_fr_mensuel`, la BDPM historisée et la liste critique de l'UE ; 24 contrôles automatiques) |
-| Niveau 3 : datasets finaux (`panel_fr`) | ⏳ à faire : plan dans [DONNEES.md](DONNEES.md) et [FAISABILITE.md](FAISABILITE.md) |
+| **Niveau 3 : table d'entraînement `panel_fr`** | ✅ fait (99 063 lignes : 1 223 substances × 81 mois, cible à 3 mois, 11 variables, découpage temporel, 9 contrôles ; `nettoyage/panel.py`) |
 | Livrable 1 : rapport de 2 pages | ✅ `Rapport-DALAS-Deliverable1/` |
 | TME6 : dashboard | ⏳ |
 | TME9 : rapport final | ⏳ |
@@ -98,11 +98,12 @@ script. Il faut Python 3.10 ou plus récent et environ 500 Mo d'espace disque.
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m collecte                    # niveau 1 : tout, en parallèle (≈ 10 min)
-.venv/bin/python -m nettoyage                   # niveau 2 : tables nettoyées dans data/clean/ (≈ 30 s)
-.venv/bin/python -m collecte actuelles wayback  # seulement certaines étapes
-.venv/bin/python -m nettoyage controles         # seulement les contrôles des tables
-.venv/bin/python -m analyse.figures_rapport     # figures du rapport du livrable 1
+.venv/bin/python -m collecte              # niveau 1 : télécharge tout dans data/raw/ (environ 10 min)
+.venv/bin/python -m nettoyage             # niveau 2 : tables dans data/clean/ (environ 30 s), puis niveau 3 : data/final/panel_fr.parquet
+.venv/bin/python -m analyse.figures_rapport  # figures du rapport
+.venv/bin/python -m analyse.diagnostics    # graphiques de contrôle des données (data/diagnostics/)
+.venv/bin/python -m analyse.description     # description chiffrée du dataset (tableaux du rapport)
+.venv/bin/python -m analyse.faisabilite    # faisabilité chiffrée : cible, cohorte, Q1 et Q2
 ```
 
 - La collecte peut être relancée : les fichiers déjà présents ne sont pas retéléchargés.
@@ -142,10 +143,13 @@ nettoyage/                niveau 2 : une étape par fichier, lancées dans l'ord
 ├── europe.py             Italie, Allemagne → europe_observations, europe_episodes
 ├── evenements.py         table centrale shortage_events (FR + IT + DE)
 ├── france_mensuel.py     signalements + épisodes → penuries_fr_mensuel (substance × mois)
-└── controles.py          contrôles des tables (dernière étape)
+├── controles.py          contrôles des tables du niveau 2
+└── panel.py              niveau 3 : table d'entraînement panel_fr (data/final/), avec ses contrôles
 
 analyse/
-└── figures_rapport.py    figures du rapport du livrable 1
+├── figures_rapport.py    figures du rapport du livrable 1
+├── description.py        description du dataset et analyse exploratoire
+└── faisabilite.py        faisabilité chiffrée sur panel_fr
 ```
 
 Arborescence des données (cours *Data Storage*) : `data/raw/` (brut, en lecture seule),
