@@ -42,6 +42,39 @@ def calculer():
     return resultat
 
 
+def facteurs():
+    """Q1 et Q2 contrôlées : régression logistique entraînée sur la période d'entraînement, évaluée sur le test (2025),
+    avec les variables de base (consommation, présentations, signalements passés, liste critique, substance déjà
+    affichée) puis avec la variable de Q1 ou de Q2. Un écart d'AUC dit ce que le signal apporte de plus."""
+    import numpy as np
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import average_precision_score, roc_auc_score
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    t = pd.read_parquet(PANEL)
+    t = t[t["jeu"] != "ecart"].copy()
+    for entree, sortie in [("conso_boites_an_prec", "conso"), ("conso_presentations_an_prec", "presentations"),
+                           ("sig_an_prec", "sig"), ("sig_cumul_avant", "sig_cumul")]:
+        t[sortie] = np.log1p(t[entree].astype("float64"))
+    t["conso_absente"] = t["conso"].isna().astype(int)
+    t[["conso", "presentations"]] = t[["conso", "presentations"]].fillna(0)
+    for c in ["fr_affichee_3m", "fr_autres_classe_3m", "it_affichee_3m"]:
+        t[c] = t[c].astype("float64")
+    base = ["conso", "presentations", "conso_absente", "ue_critique", "sig", "sig_cumul", "fr_affichee_3m"]
+
+    def auc(donnees, colonnes):
+        entrainement, test = (donnees[donnees["jeu"] == j] for j in ("entrainement", "test"))
+        modele = make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000)).fit(entrainement[colonnes], entrainement["cible"])
+        p = modele.predict_proba(test[colonnes])[:, 1]
+        return {"auc": float(roc_auc_score(test["cible"], p)), "pr_auc": float(average_precision_score(test["cible"], p)),
+                "coef": dict(zip(colonnes, modele[-1].coef_[0]))}
+
+    france, italie = t.dropna(subset=["fr_affichee_3m"]), t.dropna(subset=["it_affichee_3m"])
+    return {"Q1 sans": auc(france, base), "Q1 avec": auc(france, base + ["fr_autres_classe_3m"]),
+            "Q2 Italie sans": auc(italie, base), "Q2 Italie avec": auc(italie, base + ["it_affichee_3m"])}
+
+
 def pct(x):
     return f"{100 * x:.1f} %"
 
@@ -55,6 +88,9 @@ def main():
     for nom, d in r["expositions"].items():
         print(f"{nom} : {d['mois_couverts']} mois, {d['lignes']:,} lignes ; exposées {pct(d['part_exposee'])} ; "
               f"positives {pct(d['positives_si_exposee'])} si oui, {pct(d['positives_sinon'])} sinon".replace(",", " "))
+    print("\nSignaux contrôlés (régression logistique, test 2025) :")
+    for nom, d in facteurs().items():
+        print(f"  {nom:15} AUC {d['auc']:.3f}  PR-AUC {d['pr_auc']:.3f}")
 
 
 if __name__ == "__main__":

@@ -185,6 +185,19 @@ def controler(table, avec, evenements, tout):
         ecart = (debut_apres.year - fin_avant.year) * 12 + debut_apres.month - fin_avant.month
         verifier(f"écart d'au moins {HORIZON} mois entre {avant} et {apres}", ecart > HORIZON, f"{ecart} mois")
 
+    # Variables annuelles : recalcul indépendant depuis les tables sources, ligne par ligne.
+    signalements = lire("ansm_signalements").dropna(subset=["atc5"])
+    par = signalements.groupby(["atc5", "annee"]).size()
+    echantillon = table[table["annee"] >= 2021].sample(2000, random_state=0)
+    attendu = [int(par.get((a, y - 1), 0)) for a, y in zip(echantillon["atc5"], echantillon["annee"])]
+    verifier("sig_an_prec = signalements de l'année civile précédente", list(echantillon["sig_an_prec"]) == attendu, "écart")
+    cumul = [int(sum(par.get((a, k), 0) for k in range(2019, y))) for a, y in zip(echantillon["atc5"], echantillon["annee"])]
+    verifier("sig_cumul_avant = signalements des années civiles précédentes", list(echantillon["sig_cumul_avant"]) == cumul, "écart")
+    conso = lire("consommation").set_index(["atc5", "annee"])["boites"]
+    attendu = [conso.get((a, y - 1), pd.NA) for a, y in zip(echantillon["atc5"], echantillon["annee"])]
+    egal = all((pd.isna(x) and pd.isna(y)) or x == y for x, y in zip(echantillon["conso_boites_an_prec"], attendu))
+    verifier("conso_boites_an_prec = consommation de l'année civile précédente", egal, "écart")
+
     # Aucune fuite : recalculer les variables en ne gardant que ce qui était publié à la fin de t0
     # doit redonner exactement les valeurs du mois t0 (un épisode terminé après t0 y est « en cours »).
     t0 = pd.Period("2024-06", "M")

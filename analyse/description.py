@@ -10,6 +10,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from nettoyage.panel import cohorte
+
 RACINE = Path(__file__).resolve().parent.parent
 CLEAN = RACINE / "data" / "clean"
 TABLES = ["shortage_events", "ansm_signalements", "produits", "consommation"]
@@ -82,6 +84,8 @@ def eda(france, penuries):
     log = np.log(jours.clip(lower=1))
     manquantes = penuries.groupby("pays", observed=True)[["atc5", "fin", "debut"]].apply(lambda g: g.isna().mean())
     consommation, signalements = lire("consommation"), lire("ansm_signalements")
+    cohorte_mitm, _ = cohorte()
+    consommation = consommation[consommation["atc5"].isin(cohorte_mitm)]
     par_substance = consommation.groupby("atc5").agg(boites=("boites", "sum"), presentations=("nb_presentations", "max"))
     par_substance["signalements"] = signalements.groupby("atc5").size().reindex(par_substance.index).fillna(0)
     return {
@@ -92,6 +96,7 @@ def eda(france, penuries):
         "doublons": int(penuries.duplicated().sum()), "boites_nulles": int((consommation["boites"] == 0).sum()),
         "boites_moyenne_sur_mediane": float(consommation["boites"].mean() / consommation["boites"].median()),
         "substances_conso": len(par_substance),
+        "signalements_dans_cohorte": float(signalements["atc5"].dropna().isin(cohorte_mitm).mean()),
         "spearman": par_substance.corr("spearman").round(2).to_dict(), "pearson": par_substance.corr("pearson").round(2).to_dict()}
 
 
@@ -121,6 +126,7 @@ def main():
           f"hors règle IQR (> {e['seuil_iqr']:.0f} j) : {e['hors_iqr']}, hors 3 sigma : {e['hors_3sigma']} (log : {e['hors_3sigma_log']}), "
           f"durées nulles : {e['durees_nulles']}")
     print("EDA manquantes par pays (atc5, fin, debut) :", e["manquantes"], "; doublons :", e["doublons"], "; boîtes nulles :", e["boites_nulles"])
+    print(f"Part des signalements (ATC connu) sur une substance de la cohorte : {pct(e['signalements_dans_cohorte'])}, {e['substances_conso']} substances avec consommation")
     print(f"EDA consommation : moyenne/médiane = {e['boites_moyenne_sur_mediane']:.1f} ; Spearman {e['spearman']} ; Pearson boîtes/signalements {e['pearson']['boites']['signalements']}")
     print("Classes ATC2 les plus touchées (France) :", r["classes"])
 
