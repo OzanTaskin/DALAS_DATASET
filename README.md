@@ -47,7 +47,7 @@ python3 -m venv .venv
 .venv/bin/python -m analyse.figures_rapport  # figures du rapport
 .venv/bin/python -m analyse.diagnostics    # graphiques de contrôle des données (data/diagnostics/)
 .venv/bin/python -m analyse.description     # description chiffrée du dataset (tableaux du rapport)
-.venv/bin/python -m analyse.faisabilite    # faisabilité chiffrée : cible, cohorte, Q1 et Q2
+.venv/bin/python -m analyse.faisabilite    # faisabilité chiffrée sur panel_fr : cible, Q1 et Q2, bruts puis contrôlés
 ```
 
 - Étapes isolées : `python -m collecte actuelles wayback`, `python -m nettoyage controles`.

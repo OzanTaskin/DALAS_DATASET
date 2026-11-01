@@ -348,7 +348,9 @@ le mois de prédiction, avec les informations connues à sa fin, et la cible reg
 09/2025, 99 063 lignes). Les signalements ne servent qu'en cumul des années civiles précédentes (publication tardive).
 Un épisode est « affiché » de sa `publication` jusqu'à `fin_connue_le`, jamais jusqu'à sa `fin` réelle. Les variables
 vides signalent un mois non couvert par la source, pas un zéro. Contrôles : grain, nombre de lignes, taux de positifs,
-écart de trois mois entre jeux, et recalcul des variables avec les seules données publiées à 06/2024. Restent : la
+écart de trois mois entre jeux, et recalcul des variables avec les seules données publiées à 06/2024. Premier résultat contrôlé (`analyse/faisabilite.py`, régression logistique, test 2025) : AUC 0,862 sans Q1, 0,863 avec ;
+0,863 sans l'Italie, 0,866 avec : l'historique de la substance et son nombre de présentations dominent, Q1 n'apporte rien,
+l'Italie peu. L'Allemagne (13 mois) n'existe qu'en validation et test : non apprenable. Restent : la
 référence à battre, les modèles avec et sans Q1/Q2, la table de prédiction et le rangement des modèles.
 
 Le plan suit l'ordre imposé par le cours 1 (diapos 53 à 63).
