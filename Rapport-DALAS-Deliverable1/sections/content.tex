@@ -6,8 +6,8 @@
 
 \section{Question de recherche}
 
-Depuis 2021, les pénuries de médicaments se multiplient en Europe. Les agences sanitaires publient chaque jour la
-liste des pénuries en cours, mais personne ne cherche à les \emph{anticiper}. Notre question principale :
+Depuis 2021, les pénuries de médicaments se multiplient en Europe. Les agences sanitaires publient la liste des
+pénuries en cours, \emph{sans prévision}. Notre question principale :
 
 \begin{quote}
 \textbf{Peut-on prévoir qu'une substance active va manquer en France, et pourquoi ?}
@@ -24,14 +24,14 @@ impossible d'apprendre ce qui distingue une substance fragile d'une substance ro
 \textbf{Les sources.} Toutes les données sont officielles et publiques :
 \begin{itemize}
   \item \textbf{ANSM} (agence française) : la page publique des pénuries, et les signalements de rupture que les
-  laboratoires doivent lui déclarer, publiés chaque année depuis 2019 ;
+  laboratoires doivent lui déclarer, disponibles pour 2019--2025 ;
   \item \textbf{BDPM} (base publique du médicament) : tous les médicaments vendus en France ;
-  \item \textbf{Open Medic} (Assurance Maladie) : les boîtes remboursées par an et la classification ATC des substances ;
+  \item \textbf{Open Medic} (Assurance Maladie) : les boîtes remboursées par an et la classification ATC ;
   \item \textbf{AIFA} et \textbf{BfArM} : les listes de pénuries italienne et allemande.
 \end{itemize}
 Ces listes ne montrent que le \emph{présent} : une pénurie terminée disparaît. Pour reconstruire le passé, nous avons
-récupéré les \textbf{archives mensuelles de la Wayback Machine}, une photo de chaque liste par mois depuis 2021 (2024
-pour l'Allemagne, 2015 pour la base des médicaments).
+récupéré les \textbf{archives de la Wayback Machine} : des photos d'archives, environ mensuelles quand elles existent,
+depuis 2021 (2024 pour l'Allemagne, 2015 pour la base des médicaments).
 
 \textbf{Une construction en trois niveaux}, comme un entrepôt de données (cours \emph{Building a Dataset from a
 Warehouse}, TP MegaStore) :
@@ -60,21 +60,21 @@ Warehouse}, TP MegaStore) :
 
 Trois éléments du cours y sont appliqués :
 \begin{itemize}
-  \item le \textbf{sens d'une ligne} (grain) de chaque table est écrit et vérifié ;
+  \item le \textbf{sens d'une ligne} (grain) des tables principales est écrit et vérifié ;
   \item la base des médicaments est \textbf{historisée} (une version par période, jointure \emph{as-of}), pour décrire
   le marché tel qu'il était à chaque date ;
-  \item chaque construction est \textbf{contrôlée et tracée} : aucune ligne perdue ni dupliquée, et un manifeste dit si
+  \item chaque construction est \textbf{contrôlée et tracée} : pertes mesurées et plafonnées, et un manifeste dit si
   un écart vient du code ou des données.
 \end{itemize}
 
 \section{Le dataset}
 
 Le tableau~\ref{tab:tables} donne le nombre d'observations des principales tables, et le tableau~\ref{tab:variables} le sens
-des variables d'un épisode de pénurie. Les \textbf{signalements} français serviront de cible à la prédiction.
+de leurs variables principales. Les \textbf{signalements} français serviront de cible à la prédiction.
 
 \begin{table}[H]
 \centering\small
-\renewcommand{\arraystretch}{1.25}
+\renewcommand{\arraystretch}{1.15}
 \rowcolors{2}{white}{niveaubrut!6}
 \begin{tabular}{l l r l}
 \rowcolor{niveaubrut!16}
@@ -92,37 +92,38 @@ Médicaments, France & un médicament commercialisé & 13\,650 & 2026 \\
 
 \begin{table}[H]
 \centering\small
-\renewcommand{\arraystretch}{1.25}
+\renewcommand{\arraystretch}{1.15}
 \rowcolors{2}{white}{niveaubrut!6}
 \begin{tabularx}{\linewidth}{l X}
 \rowcolor{niveaubrut!16}
 \entete{Variable} & \entete{Signification} \\
-\texttt{\color{niveaubrut!30!black}atc5} & la substance active (code ATC niveau 5) : la clé qui relie les pays entre eux \\
-\texttt{\color{niveaubrut!30!black}atc4} & la classe thérapeutique : les substances d'une même classe sont des substituts \\
+\texttt{\color{niveaubrut!30!black}atc5} & la substance active (code ATC niveau 5), clé commune aux trois pays \\
+\texttt{\color{niveaubrut!30!black}atc4} & la classe thérapeutique : ses substances sont des substituts \\
 \texttt{\color{niveaubrut!30!black}debut}, \texttt{\color{niveaubrut!30!black}fin} & le début et la fin de la pénurie \\
-\texttt{\color{niveaubrut!30!black}publication} & la date à laquelle la pénurie apparaît sur la liste, c'est-à-dire devient connue \\
+\texttt{\color{niveaubrut!30!black}publication} & la date où la pénurie apparaît sur la liste (devient connue) \\
 \texttt{\color{niveaubrut!30!black}gravite} & en France : risque de rupture, tension ou rupture \\
-\texttt{\color{niveaubrut!30!black}raison} & en Italie et en Allemagne : la cause déclarée (production, forte demande…) \\
+\texttt{\color{niveaubrut!30!black}raison} & en Italie et en Allemagne : la cause déclarée (production, demande…) \\
+\texttt{\color{niveaubrut!30!black}date\_signalement} & signalements : date de la déclaration et laboratoire déclarant \\
+\texttt{\color{niveaubrut!30!black}forme}, \texttt{\color{niveaubrut!30!black}voies} & médicaments : forme, voie d'administration (et laboratoires titulaires) \\
+\texttt{\color{niveaubrut!30!black}boites} & consommation : les boîtes remboursées par substance et par an \\
 \filet
 \end{tabularx}
-\caption{Les variables principales d'un épisode de pénurie.}
+\caption{Les variables principales : épisodes, signalements, médicaments et consommation.}
 \label{tab:variables}
 \end{table}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.74\linewidth]{figures/evolution_penuries.pdf}
-\caption{Nombre de pénuries en cours sur chaque archive mensuelle. Zones grises : mois sans archive.}
+\includegraphics[width=0.66\linewidth]{figures/evolution_penuries.pdf}
+\caption{Pénuries en cours par archive. Zones grises : périodes de plus de 100 jours sans archive.}
 \label{fig:evolution}
 \end{figure}
 
-Trois constats ressortent déjà (figure~\ref{fig:evolution}) :
 \begin{itemize}
-  \item en France, les pénuries culminent pendant l'hiver 2022-2023, au moment de la crise des antibiotiques ; une
-  pénurie dure en général environ \textbf{4 mois}, et près d'une sur cinq plus d'un an ;
+  \item en France, les pénuries culminent pendant l'hiver 2022-2023, au moment de la crise des antibiotiques
+  (figure~\ref{fig:evolution}) ; une pénurie dure environ \textbf{4 mois}, et près d'une sur cinq plus d'un an ;
   \item \textbf{un tiers des substances} vendues en France a connu au moins une pénurie depuis 2021 ;
-  \item près de \textbf{trois substances françaises en pénurie sur quatre} l'ont aussi été en Italie ou en Allemagne,
-  ce qui rend la question des pénuries importées pertinente.
+  \item près de \textbf{3 substances françaises en pénurie sur 4} l'ont aussi été en Italie ou en Allemagne.
 \end{itemize}
 
 \section{Prétraitement et choix}
@@ -130,8 +131,11 @@ Trois constats ressortent déjà (figure~\ref{fig:evolution}) :
 \textbf{Relier les sources entre elles.} Ni l'ANSM ni la BDPM n'indiquent la substance sous forme de code. Nous
 la retrouvons en croisant les sources (boîte, nom, substance) : 9 lignes sur 10 sont reliées.
 
-\textbf{Passer des photos aux épisodes.} Une archive mensuelle n'est qu'une photo. Nous regroupons les photos
-successives d'un même médicament en un épisode, avec une date de début et une date de fin.
+\textbf{Passer des photos aux épisodes.} Une archive n'est qu'une photo : nous regroupons les photos successives d'un
+même médicament en un épisode (début, fin). Deux corrections évitent de fausses pénuries : en Italie, l'AIFA révise
+souvent la date de début d'une pénurie déjà listée, un épisode est donc une présence continue sur la liste ; en
+Allemagne, un quart des lignes ont une déclaration initiale « N/A » qui formait à tort un seul épisode : elle est
+traitée comme vide.
 
 \textbf{Ne jamais utiliser le futur.} Pour prédire, on ne doit utiliser que ce qui était connu au moment de la
 prédiction. Nous gardons donc la date de \texttt{publication} d'une pénurie à côté de sa date de début : le début
@@ -140,5 +144,7 @@ déclaré est parfois connu après coup, ou annoncé à l'avance.
 \textbf{Écarter ce qui fausserait les données.} Les arrêts définitifs de commercialisation ne sont pas des pénuries,
 et certaines archives ont été tronquées par la Wayback Machine : les deux sont exclus.
 
-\textbf{Limites.} Les signalements ne concernent que les médicaments jugés essentiels, et les pays ne définissent pas
-une pénurie de la même façon : ces différences seront prises en compte dans l'analyse.
+\textbf{Limites.} Les signalements ne concernent que les médicaments d'intérêt thérapeutique majeur, seuls soumis à
+déclaration, sans date de fin ni statut. Les archives sont irrégulières : une pénurie courte peut passer entre deux
+photos, et le marché a des trous d'historique entre 2020 et 2024. Les pays définissent la pénurie différemment, et une
+part de la hausse des signalements peut venir de déclarations renforcées.

@@ -8,7 +8,7 @@
 | Field | Value |
 |---|---|
 | Template | `blank` — Blank document — minimal pdfLaTeX starter (article class, title, one section) |
-| Language | English |
+| Language | French (choisi par les auteurs) |
 | LaTeX engine | pdfLaTeX |
 | Bibliography | none |
 | Output | `build/Rapport-DALAS-Deliverable1.pdf` |
@@ -106,7 +106,7 @@ Then cite with `\cite{key}` in your text.
 
 ### Language
 
-This report's language is **English** (see `frontmatter/metadata.tex`). Write
+This report's language is **French** (choice of the authors). Write
 all section content — including captions, labels, and table/figure text — in
 this language, regardless of the language used in this AGENTS.md file.
 
